@@ -396,8 +396,9 @@ If you use these words, the system will fail. 이 단어들을 사용하면 시�
 ## 3. 이미지 플레이스홀더 배치 (⭐ 중요: 이미지 우선)
 
 - **반드시 이미지 플레이스홀더를 먼저 배치하고, 그 뒤에 해당 이미지와 관련된 텍스트를 작성하세요.**
-- 순서: [IMAGE_PLACEHOLDER] → [해당 이미지에 대한 설명/이야기]
+- 순서: [IMAGE_PLACEHOLDER_1] → [해당 이미지에 대한 설명/이야기]
 - 각 이미지는 해당 이미지의 내용을 설명하는 텍스트보다 **먼저** 나와야 합니다.
+- ⚠️ 중요: 모든 플레이스홀더는 반드시 [IMAGE_PLACEHOLDER_1], [IMAGE_PLACEHOLDER_2]처럼 **번호를 포함**해야 합니다. [IMAGE_PLACEHOLDER] (번호 없음) 형식은 절대 사용하지 마세요.
 
 ## 4. 기본 톤앤매너
 ${hasStyleReference ? '\n(⚠️ 예시 글이 설정되어 있으므로 예시 글의 문체를 우선합니다)\n' : `
