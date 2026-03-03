@@ -115,6 +115,25 @@
 
 ---
 
+### [`CHANGELOG.md`](CHANGELOG.md)
+
+**버전별 변경 이력 추적**
+
+- **형식**: Keep a Changelog 기반, Semantic Versioning 준수
+- **변경 유형**: Added, Changed, Deprecated, Removed, Fixed, Security
+- **현재 버전**: 1.0.0 (2026-03-04)
+- **주요 변경사항**:
+  - 얼굴 모자이크 기능 추가 (face-api.js)
+  - DOCS_INDEX.md 문서 관리 체계 도입
+  - department 필드 제거
+  - Supabase → Convex 마이그레이션
+
+| 관련 기능 | 관련 파일 |
+|----------|----------|
+| 버전 관리, 변경 이력 | 전체 프로젝트 |
+
+---
+
 ## 기능별 문서 매핑
 
 ### 🎨 프론트엔드
@@ -151,6 +170,22 @@
 | 데모 모드 | `PROJECT_ANALYSIS.md` |
 | 브랜딩 | `AGENTS.md` |
 
+### 📝 버전 관리
+| 기능 | 추천 문서 |
+|------|----------|
+| 변경 이력 | `CHANGELOG.md` |
+
+### 📝 버전 관리
+| 기능 | 추천 문서 |
+|------|----------|
+| 변경 이력 | `CHANGELOG.md` |
+| 릴리즈 노트 | `CHANGELOG.md` |
+
+### 📝 버전 관리
+| 기능 | 추천 문서 |
+|------|----------|
+| 변경 이력 | `CHANGELOG.md` |
+
 ---
 
 ## 문서 업데이트 이력
@@ -161,6 +196,6 @@
 | 2026-03-04 | `PROJECT_ANALYSIS.md` | 얼굴 인식 기능 추가, department 필드 제거, 기술 스택(face-api.js) 업데이트 |
 | 2026-03-04 | `AGENTS.md` | 얼굴 인식 관련 파일 구조, docs/ 폴더 추가 |
 | 2026-03-04 | `docs/face-blur-implementation.md` | 적용 기능 섹션 추가 (onApply prop, base64ToFile) |
-| 2026-03-04 | `DOCS_INDEX.md` | 최초 생성 |
+| 2026-03-04 | `DOCS_INDEX.md` | CHANGELOG.md 섹션 추가, 버전 관리 매핑 추가 |
 | 2026-03-03 | `SCREEN_MAPPING.md` | 최초 작성 |
 | 2026-03-03 | `PROJECT_ANALYSIS.md` | 최초 작성 |
