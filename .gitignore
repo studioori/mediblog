@@ -31,8 +31,5 @@ dist-ssr
 .env.*.local
 .vercel
 
-# Convex generated files
-convex/_generated/
-
 # TypeScript build cache
 *.tsbuildinfo
