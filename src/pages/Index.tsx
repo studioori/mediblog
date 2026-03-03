@@ -6,6 +6,7 @@ import PhotoBlogResult from '@/components/PhotoBlogResult';
 import RecentPostsList from '@/components/RecentPostsList';
 import AdminSimulationBar, { type SimulationProfile } from '@/components/AdminSimulationBar';
 import CouponRedeem from '@/components/CouponRedeem';
+import FaceBlurModal from '@/components/FaceBlurModal';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,6 +21,7 @@ import HealthQAResult from '@/components/HealthQAResult';
 const Index = () => {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [simulationProfile, setSimulationProfile] = useState<SimulationProfile | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoItem | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, profile, canGenerate, isLoading: authLoading, isAdmin, isDemo, endDemo } = useAuth();
@@ -114,6 +116,37 @@ const Index = () => {
     photos.forEach(photo => URL.revokeObjectURL(photo.preview));
     setPhotos([]);
     reset();
+  };
+
+  // ============================================
+  // 얼굴 모자이크 핸들러
+  // ============================================
+  const handlePhotoClick = (photo: PhotoItem) => {
+    setSelectedPhoto(photo);
+  };
+
+  const handleCloseFaceBlurModal = () => {
+    setSelectedPhoto(null);
+  };
+
+  const handlePhotoApply = (processedFile: File | null, photoId: string) => {
+    if (processedFile) {
+      const oldPreview = photos.find(p => p.id === photoId)?.preview;
+      if (oldPreview) {
+        URL.revokeObjectURL(oldPreview);
+      }
+
+      setPhotos(prev => prev.map(p => {
+        if (p.id === photoId) {
+          return {
+            ...p,
+            file: processedFile,
+            preview: URL.createObjectURL(processedFile),
+          };
+        }
+        return p;
+      }));
+    }
   };
 
   // ============================================
@@ -286,6 +319,7 @@ const Index = () => {
                       isLoading={isLoading}
                       maxPhotos={5}
                       department={profile?.department}
+                      onPhotoClick={handlePhotoClick}
                     />
 
                     {/* 에러 메시지 */}
@@ -410,6 +444,14 @@ const Index = () => {
           <RecentPostsList />
         )}
       </main>
+
+      {/* 얼굴 모자이크 모달 */}
+      <FaceBlurModal
+        isOpen={selectedPhoto !== null}
+        onClose={handleCloseFaceBlurModal}
+        photo={selectedPhoto}
+        onApply={handlePhotoApply}
+      />
 
       {/* 푸터 */}
       <footer className="py-10 text-center text-sm text-muted-foreground border-t border-border/30 transition-colors duration-300 hover:border-border/50">

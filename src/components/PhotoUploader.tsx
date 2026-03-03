@@ -184,7 +184,8 @@ interface PhotoUploaderProps {
   onPhotosChange: (photos: PhotoItem[]) => void;
   isLoading?: boolean;
   maxPhotos?: number;
-  department?: string; // 진료과 추가
+  department?: string;
+  onPhotoClick?: (photo: PhotoItem) => void;
 }
 
 interface SortablePhotoItemProps {
@@ -194,9 +195,10 @@ interface SortablePhotoItemProps {
   onRemove: (id: string) => void;
   isDisabled: boolean;
   placeholderExample: string;
+  onPhotoClick?: (photo: PhotoItem) => void;
 }
 
-const SortablePhotoItem = ({ photo, index, onKeywordChange, onRemove, isDisabled, placeholderExample }: SortablePhotoItemProps) => {
+const SortablePhotoItem = ({ photo, index, onKeywordChange, onRemove, isDisabled, placeholderExample, onPhotoClick }: SortablePhotoItemProps) => {
   const {
     attributes,
     listeners,
@@ -236,7 +238,15 @@ const SortablePhotoItem = ({ photo, index, onKeywordChange, onRemove, isDisabled
           </div>
 
           {/* Thumbnail */}
-          <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-muted shadow-soft group/thumb transition-transform duration-300 hover:scale-105">
+          <div 
+            className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-muted shadow-soft group/thumb transition-transform duration-300 ${onPhotoClick ? 'cursor-pointer hover:ring-2 hover:ring-primary/50 hover:scale-105' : 'hover:scale-105'}`}
+            onClick={(e) => {
+              if (onPhotoClick) {
+                e.stopPropagation();
+                onPhotoClick(photo);
+              }
+            }}
+          >
             <img
               src={photo.preview}
               alt={`사진 ${index + 1}`}
@@ -293,7 +303,7 @@ const compressImage = async (file: File): Promise<File> => {
   }
 };
 
-const PhotoUploader = ({ photos, onPhotosChange, isLoading = false, maxPhotos = 5, department }: PhotoUploaderProps) => {
+const PhotoUploader = ({ photos, onPhotosChange, isLoading = false, maxPhotos = 5, department, onPhotoClick }: PhotoUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -489,6 +499,7 @@ const PhotoUploader = ({ photos, onPhotosChange, isLoading = false, maxPhotos = 
                     onRemove={handleRemovePhoto}
                     isDisabled={isDisabled}
                     placeholderExample={placeholderExamples[index % placeholderExamples.length]}
+                    onPhotoClick={onPhotoClick}
                   />
                 ))}
               </div>
