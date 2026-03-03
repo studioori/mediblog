@@ -36,7 +36,7 @@ export const getProfile = query({
   handler: async (ctx, args) => {
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     return profile;
@@ -55,7 +55,7 @@ export const getProfileByEmail = query({
   handler: async (ctx, args) => {
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .filter((q) => q.eq(q.field("email"), args.email))
       .first();
 
     return profile;
@@ -94,7 +94,7 @@ export const canGenerate = query({
   handler: async (ctx, args) => {
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (!profile) {
@@ -172,18 +172,15 @@ export const canGenerate = query({
  * @param id - 사용자 ID (Clerk 인증 ID)
  * @param email - 이메일 (선택)
  * @param center_name - 병원명
- * @param department - 진료과 (선택)
  * @param region - 지역 (선택)
  * @param plan_tier - 플랜 등급 (선택, 기본값: free)
  * @returns 생성된 프로필 ID
  */
 export const createProfile = mutation({
   args: {
-    id: v.string(),
+    clerk_id: v.string(),
     email: v.optional(v.string()),
     center_name: v.string(),
-    department: v.optional(v.string()),
-    region: v.optional(v.string()),
     plan_tier: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -194,20 +191,19 @@ export const createProfile = mutation({
     // 기존 프로필 존재 여부 확인
     const existingProfile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.id))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.clerk_id))
       .first();
 
     if (existingProfile) {
-      throw new Error(`이미 존재하는 사용자입니다: ${args.id}`);
+throw new Error(`이미 존재하는 사용자입니다: ${args.clerk_id}`);
     }
 
     // 프로필 생성 (승인 대기 상태)
     const profileId = await ctx.db.insert("profiles", {
-      id: args.id,
+      clerk_id: args.clerk_id,
       email: args.email,
       center_name: args.center_name,
-      department: args.department,
-      region: args.region,
+
       plan_tier: planTier,
       monthly_limit: planDefaults.monthly_limit,
       current_usage: 0,
@@ -219,13 +215,13 @@ export const createProfile = mutation({
 
     // 기본 사용자 권한 생성
     await ctx.db.insert("user_roles", {
-      user_id: args.id,
+      user_id: args.clerk_id,
       role: "user",
       created_at: now,
     });
 
     return profileId;
-  },
+  }
 });
 
 /**
@@ -261,7 +257,7 @@ export const updateProfile = mutation({
   handler: async (ctx, args) => {
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (!profile) {
@@ -312,7 +308,7 @@ export const incrementUsage = mutation({
 
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (!profile) {
@@ -432,7 +428,7 @@ export const getCurrentUser = query({
   handler: async (ctx, args) => {
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (!profile) {
@@ -500,7 +496,7 @@ export const linkPendingProfile = mutation({
     // pending 프로필 찾기
     const pendingProfile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", pendingId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", pendingId))
       .first();
 
     if (!pendingProfile) {
@@ -508,7 +504,7 @@ export const linkPendingProfile = mutation({
       console.log(`No pending profile found for ${args.email}, creating new one`);
       const now = Date.now();
       const profileId = await ctx.db.insert("profiles", {
-        id: args.clerkUserId,
+        clerk_id: args.clerkUserId,
         email: args.email,
         center_name: "병원명 미설정",
         region: "",
@@ -534,7 +530,7 @@ export const linkPendingProfile = mutation({
     // 이미 실제 ID로 된 프로필이 있는지 확인
     const existingProfile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.clerkUserId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.clerkUserId))
       .first();
 
     if (existingProfile) {
@@ -545,7 +541,7 @@ export const linkPendingProfile = mutation({
 
     // pending 프로필을 실제 ID로 업데이트
     await ctx.db.patch(pendingProfile._id, {
-      id: args.clerkUserId,
+      clerk_id: args.clerkUserId,
       updated_at: Date.now(),
     });
 
@@ -570,5 +566,71 @@ export const linkPendingProfile = mutation({
 
     console.log(`Linked pending profile ${pendingId} to ${args.clerkUserId}`);
     return { linked: true, created: false, profileId: pendingProfile._id };
+  },
+});
+// ============================================
+// Migration Functions
+// ============================================
+
+/**
+ * department 컬럼의 값을 null로 설정
+ * 컬럼 자체는 Convex가 관리하므로 명시적인 제거가 필요함
+ */
+export const clearDepartmentValues = internalMutation({
+  handler: async (ctx) => {
+    const profiles = await ctx.db.query("profiles").collect();
+
+    let updatedCount = 0;
+    for (const profile of profiles) {
+      // TypeScript는 이미 department가 제거된 것으로 알고 있으므로, any 타입 사용
+      const profileAny = profile as any;
+      if (profileAny.department !== undefined) {
+        await ctx.db.patch(profile._id, {
+          department: undefined,
+          updated_at: Date.now(),
+        } as any);
+        updatedCount++;
+      }
+    }
+
+    console.log(`Cleared department values from ${updatedCount} profiles`);
+    return {
+      totalProfiles: profiles.length,
+      updatedProfiles: updatedCount,
+      message: `Cleared department values from ${updatedCount} profiles`,
+    };
+  },
+});
+
+/**
+ * id 필드를 clerk_id로 마이그레이션
+ * 기존 데이터에 id 필드가 있고 clerk_id가 없는 경우 실행
+ */
+export const migrateIdToClerkId = mutation({
+  args: {},
+  handler: async (ctx, _args) => {
+    const profiles = await ctx.db.query("profiles").collect();
+
+    let migratedCount = 0;
+    for (const profile of profiles) {
+      const profileAny = profile as any;
+      
+      // id 필드가 있고 clerk_id가 없으면 마이그레이션
+      if (profileAny.id !== undefined && profile.clerk_id === undefined) {
+        await ctx.db.patch(profile._id, {
+          clerk_id: profileAny.id,
+          id: undefined,
+          updated_at: Date.now(),
+        } as any);
+        migratedCount++;
+        console.log(`Migrated profile ${profile._id}: id -> clerk_id = ${profileAny.id}`);
+      }
+    }
+
+    return {
+      totalProfiles: profiles.length,
+      migratedProfiles: migratedCount,
+      message: `Migrated ${migratedCount} profiles from 'id' to 'clerk_id'`,
+    };
   },
 });

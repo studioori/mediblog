@@ -23,7 +23,7 @@ interface UsageHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   profile: {
-    id: string;
+    clerk_id: string;
     center_name: string;
     email: string;
   } | null;
@@ -33,16 +33,14 @@ const UsageHistoryModal = ({ isOpen, onClose, profile }: UsageHistoryModalProps)
   // Fetch activity logs
   const logsData = useQuery(
     queries.getActivityLogsByUser as any,
-    profile?.id ? { userId: profile.id, limit: 50 } : 'skip'
+    profile?.clerk_id ? { userId: profile.clerk_id, limit: 50 } : 'skip'
   );
 
   // Fetch total posts count
   const totalPosts = useQuery(
     queries.getPostCountByUser as any,
-    profile?.id ? { userId: profile.id } : 'skip'
+    profile?.clerk_id ? { userId: profile.clerk_id } : 'skip'
   );
-
-  const isLoading = logsData === undefined || totalPosts === undefined;
 
   // Transform logs
   const logs: ActivityLog[] = (logsData || []).map((log: any) => ({

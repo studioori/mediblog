@@ -17,15 +17,11 @@ export default defineSchema({
   // 사용자 프로필 테이블
   // ============================================
   profiles: defineTable({
-    // Clerk/Clerk 인증 사용자 ID (문자열)
-    id: v.string(),
-    // 이메일
+    // Clerk 사용자 ID (외부 키)
+    clerk_id: v.string(),
     email: v.optional(v.string()),
     // 병원명
     center_name: v.string(),
-    // 진료과
-    department: v.optional(v.string()),
-    // 지역
     region: v.optional(v.string()),
     // 플랜 등급 (free/basic/premium)
     plan_tier: v.string(),
@@ -62,10 +58,9 @@ export default defineSchema({
     // 수정일 (Unix timestamp in ms)
     updated_at: v.number(),
   })
-    // 인증 ID로 빠른 조회 (by_id는 예약어라서 by_auth_id 사용)
-    .index("by_auth_id", ["id"])
+    // Clerk ID로 빠른 조회
+    .index("by_clerk_id", ["clerk_id"])
     // 이메일로 조회
-    .index("by_email", ["email"])
     // 플랜별 조회
     .index("by_plan_tier", ["plan_tier"])
     // 활성 사용자 조회
@@ -75,7 +70,7 @@ export default defineSchema({
   // 사용자 권한 테이블
   // ============================================
   user_roles: defineTable({
-    // 사용자 ID (profiles.id와 동일)
+    // 사용자 ID (profiles.clerk_id와 동일)
     user_id: v.string(),
     // 권한 (admin/user)
     role: v.union(

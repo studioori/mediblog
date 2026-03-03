@@ -25,17 +25,17 @@ export const seedFirstAdmin = mutation({
     // 기존 프로필 확인 (이메일로)
     const existingProfile = await ctx.db
       .query("profiles")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .filter((q) => q.eq(q.field("email"), args.email))
       .first();
 
     if (existingProfile) {
       // 기존 프로필이 있으면 관리자 권한만 추가
       await ctx.db.insert("user_roles", {
-        user_id: existingProfile.id,
+        user_id: existingProfile.clerk_id,
         role: "admin",
         created_at: Date.now(),
       });
-      return { success: true, message: "기존 사용자에게 관리자 권한 부여됨", userId: existingProfile.id };
+      return { success: true, message: "기존 사용자에게 관리자 권한 부여됨", userId: existingProfile.clerk_id };
     }
 
     // 새 관리자 생성을 위한 임시 ID
@@ -59,7 +59,7 @@ export const setAdminByEmail = mutation({
     // 프로필 찾기
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .filter((q) => q.eq(q.field("email"), args.email))
       .first();
 
     if (!profile) {
@@ -72,7 +72,7 @@ export const setAdminByEmail = mutation({
     // 기존 권한 확인
     const existingRole = await ctx.db
       .query("user_roles")
-      .withIndex("by_user_id", (q) => q.eq("user_id", profile.id))
+      .withIndex("by_user_id", (q) => q.eq("user_id", profile.clerk_id))
       .first();
 
     if (existingRole) {
@@ -83,7 +83,7 @@ export const setAdminByEmail = mutation({
     } else {
       // 새 권한 생성
       await ctx.db.insert("user_roles", {
-        user_id: profile.id,
+        user_id: profile.clerk_id,
         role: "admin",
         created_at: Date.now(),
       });
@@ -97,7 +97,7 @@ export const setAdminByEmail = mutation({
     return {
       success: true,
       message: `${args.email} 님에게 관리자 권한이 부여되었습니다!`,
-      userId: profile.id
+      userId: profile.clerk_id
     };
   },
 });
@@ -151,7 +151,7 @@ export const createDemoClinics = mutation({
       // 이미 존재하는지 확인
       const existing = await ctx.db
         .query("profiles")
-        .withIndex("by_email", (q) => q.eq("email", clinic.email))
+        .filter((q) => q.eq(q.field("email"), clinic.email))
         .first();
 
       if (existing) {
@@ -161,7 +161,7 @@ export const createDemoClinics = mutation({
 
       // 프로필 생성
       const profileId = await ctx.db.insert("profiles", {
-        id: clinic.id,
+        clerk_id: clinic.id,
         email: clinic.email,
         center_name: clinic.center_name,
         region: clinic.region,

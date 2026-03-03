@@ -9,23 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Mail, Lock, User, Building2, Stethoscope, MapPin, Play, Sparkles, LogOut } from 'lucide-react';
 
-// 진료과 목록
-const DEPARTMENTS = [
-  { value: 'internal_medicine', label: '내과/가정의학과' },
-  { value: 'pediatrics', label: '소아청소년과' },
-  { value: 'ent', label: '이비인후과' },
-  { value: 'dermatology', label: '피부과' },
-  { value: 'ophthalmology', label: '안과' },
-  { value: 'orthopedics', label: '정형외과' },
-  { value: 'obstetrics', label: '산부인과' },
-  { value: 'urology', label: '비뇨의학과' },
-  { value: 'psychiatry', label: '정신건강의학과' },
-  { value: 'dentistry', label: '치과' },
-  { value: 'anesthesiology', label: '마취통증의학과' },
-] as const;
+import { Loader2, Mail, Lock, Building2, MapPin, Play, Sparkles } from 'lucide-react';
+
 
 const REMEMBER_EMAIL_KEY = 'mediblog_remember_email';
 
@@ -55,9 +41,7 @@ const Auth = () => {
   // 회원가입 폼 상태
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupName, setSignupName] = useState('');
   const [signupHospital, setSignupHospital] = useState('');
-  const [signupDepartment, setSignupDepartment] = useState('');
   const [signupRegion, setSignupRegion] = useState('');
   const [signupError, setSignupError] = useState('');
   const [signupLoading, setSignupLoading] = useState(false);
@@ -66,7 +50,6 @@ const Auth = () => {
   // Demo mode state
   const [demoHospital, setDemoHospital] = useState('서울치과의원');
   const [demoRegion, setDemoRegion] = useState('서울 강남구');
-  const [demoDepartment, setDemoDepartment] = useState('dentistry');
   const [demoError, setDemoError] = useState('');
 
   // 저장된 이메일 불러오기
@@ -156,9 +139,7 @@ const Auth = () => {
         emailAddress: signupEmail,
         password: signupPassword,
         unsafeMetadata: {
-          name: signupName,
           hospital: signupHospital,
-          department: signupDepartment,
           region: signupRegion,
         },
       });
@@ -173,8 +154,6 @@ const Auth = () => {
           id: profileId,
           email: signupEmail,
           center_name: signupHospital,
-          department: signupDepartment || undefined,
-          region: signupRegion,
           plan_tier: 'free',
         });
         console.log('Convex profile created for:', profileId);
@@ -211,7 +190,7 @@ const Auth = () => {
       setDemoError('병원명과 지역을 입력해주세요.');
       return;
     }
-    startDemo(demoHospital, demoRegion, demoDepartment);
+    startDemo(demoHospital, demoRegion);
     navigate('/');
   };
 
@@ -394,23 +373,7 @@ const Auth = () => {
                         </Alert>
                       )}
 
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-name" className="text-slate-700 font-medium">
-                          이름
-                        </Label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                          <Input
-                            id="signup-name"
-                            type="text"
-                            placeholder="홍길동"
-                            value={signupName}
-                            onChange={(e) => setSignupName(e.target.value)}
-                            className="pl-10 h-12 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
-                            required
-                          />
-                        </div>
-                      </div>
+
 
                       <div className="space-y-2">
                         <Label htmlFor="signup-hospital" className="text-slate-700 font-medium">
@@ -430,26 +393,7 @@ const Auth = () => {
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-department" className="text-slate-700 font-medium">
-                          진료과
-                        </Label>
-                        <div className="relative">
-                          <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                          <Select value={signupDepartment} onValueChange={setSignupDepartment}>
-                            <SelectTrigger className="pl-10 h-12 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
-                              <SelectValue placeholder="진료과를 선택해주세요" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DEPARTMENTS.map((dept) => (
-                                <SelectItem key={dept.value} value={dept.value}>
-                                  {dept.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+
 
                       <div className="space-y-2">
                         <Label htmlFor="signup-region" className="text-slate-700 font-medium">
@@ -569,26 +513,7 @@ const Auth = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="demo-department" className="text-[#F7DBA7] font-medium text-sm">
-                    진료과
-                  </Label>
-                  <div className="relative">
-                    <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#F7DBA7]/50 z-10" />
-                    <Select value={demoDepartment} onValueChange={setDemoDepartment}>
-                      <SelectTrigger className="pl-10 h-12 bg-[#041F1E]/50 border-[#F7DBA7]/20 focus:border-[#F7DBA7] text-[#F7DBA7]">
-                        <SelectValue placeholder="진료과를 선택해주세요" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#041F1E] border-[#F7DBA7]/20">
-                        {DEPARTMENTS.map((dept) => (
-                          <SelectItem key={dept.value} value={dept.value} className="text-[#F7DBA7] hover:bg-[#F7DBA7]/10">
-                            {dept.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+
 
                 <div className="space-y-2">
                   <Label htmlFor="demo-region" className="text-[#F7DBA7] font-medium text-sm">

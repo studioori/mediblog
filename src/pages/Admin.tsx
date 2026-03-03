@@ -157,7 +157,7 @@ const Admin = () => {
     // Check if this user has admin role (에러 무시하고 다이얼로그 열기)
     try {
       const api = await import('../../convex/_generated/api');
-      const roleData = await (api as any).admin.getUserRoleByUserId({ userId: profile.id });
+      const roleData = await (api as any).admin.getUserRoleByUserId({ userId: profile.clerk_id });
       if (roleData?.role === 'admin') {
         setEditIsAdminRole(true);
       }
@@ -358,7 +358,7 @@ const Admin = () => {
                     </TableHeader>
                     <TableBody>
                       {pendingProfiles.map((profile) => (
-                        <TableRow key={profile.id} className="bg-secondary/5">
+                        <TableRow key={profile.clerk_id} className="bg-secondary/5">
                           <TableCell className="font-medium">
                             {profile.center_name === '내 센터' ? (
                               <span className="text-secondary italic">미등록</span>
@@ -438,7 +438,7 @@ const Admin = () => {
                           : 0;
                         
                         return (
-                          <TableRow key={profile.id} className={!profile.is_active ? 'bg-muted/20' : ''}>
+                          <TableRow key={profile.clerk_id} className={!profile.is_active ? 'bg-muted/20' : ''}>
                             <TableCell className="font-medium">
                               <div>
                                 {profile.center_name === '내 센터' ? (

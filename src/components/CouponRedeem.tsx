@@ -48,7 +48,7 @@ const CouponRedeem = ({ onRedeemSuccess }: CouponRedeemProps) => {
 
     try {
       const result = await redeemCoupon({
-        userId: profile.id,
+        userId: profile.clerk_id,
         code: code.trim(),
       });
 

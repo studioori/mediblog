@@ -105,7 +105,7 @@ const AdminSimulationBar = ({ onProfileSelect, selectedProfile }: AdminSimulatio
                     <span className="text-slate-500">-- 직접 입력 모드 (내 계정) --</span>
                   </SelectItem>
                   {profiles.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id}>
+                    <SelectItem key={profile.clerk_id} value={profile.clerk_id}>
                       <div className="flex items-center gap-2">
                         <Building2 className="w-3 h-3 text-slate-400" />
                         <span>{profile.center_name}</span>

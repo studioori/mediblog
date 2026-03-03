@@ -39,7 +39,7 @@ export const getAllProfiles = query({
     const adminUserIds = new Set(adminRoles.map((r) => r.user_id));
 
     // 어드민 제외한 클라이언트 프로필만 반환
-    return profiles.filter((p) => !adminUserIds.has(p.id));
+    return profiles.filter((p) => !adminUserIds.has(p.clerk_id));
   },
 });
 
@@ -88,7 +88,7 @@ export const getAdminStats = query({
     const adminUserIds = new Set(adminRoles.map((r) => r.user_id));
 
     // 클라이언트 프로필만 필터링
-    const clientProfiles = profiles.filter((p) => !adminUserIds.has(p.id));
+    const clientProfiles = profiles.filter((p) => !adminUserIds.has(p.clerk_id));
 
     // 오늘 생성된 포스트 수
     const today = new Date();
@@ -284,7 +284,7 @@ export const adminUpdateProfile = mutation({
     // 대상 프로필 조회
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.targetUserId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.targetUserId))
       .first();
 
     if (!profile) {
@@ -385,7 +385,7 @@ export const adminCreateUser = mutation({
     // 기존 프로필 확인
     const existingProfile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (existingProfile) {
@@ -394,7 +394,7 @@ export const adminCreateUser = mutation({
 
     // 프로필 생성
     const profileId = await ctx.db.insert("profiles", {
-      id: args.userId,
+      clerk_id: args.userId,
       email: args.email,
       center_name: args.centerName,
       region: args.region,
@@ -452,7 +452,7 @@ export const adminDeleteUser = mutation({
     // 프로필 조회
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.targetUserId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.targetUserId))
       .first();
 
     if (!profile) {
@@ -511,7 +511,7 @@ export const updateStyleConfig = mutation({
   handler: async (ctx, args) => {
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (!profile) {
@@ -554,7 +554,7 @@ export const getProfileWithRole = query({
   handler: async (ctx, args) => {
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (!profile) {
@@ -607,19 +607,19 @@ export const getProfilesWithAnalytics = query({
     const adminUserIds = new Set(adminRoles.map((r) => r.user_id));
 
     // 클라이언트 프로필만 필터링
-    const clientProfiles = profiles.filter((p) => !adminUserIds.has(p.id));
+    const clientProfiles = profiles.filter((p) => !adminUserIds.has(p.clerk_id));
 
     // 마지막 활동 시간 맵 구성
     const lastActiveMap: Record<string, number> = {};
     for (const profile of clientProfiles) {
       const lastLog = await ctx.db
         .query("activity_logs")
-        .withIndex("by_user_id", (q) => q.eq("user_id", profile.id))
+        .withIndex("by_user_id", (q) => q.eq("user_id", profile.clerk_id))
         .order("desc")
         .first();
 
       if (lastLog) {
-        lastActiveMap[profile.id] = lastLog.created_at;
+        lastActiveMap[profile.clerk_id] = lastLog.created_at;
       }
     }
 
@@ -628,16 +628,16 @@ export const getProfilesWithAnalytics = query({
     for (const profile of clientProfiles) {
       const posts = await ctx.db
         .query("generated_posts")
-        .withIndex("by_user_id", (q) => q.eq("user_id", profile.id))
+        .withIndex("by_user_id", (q) => q.eq("user_id", profile.clerk_id))
         .collect();
-      postCountMap[profile.id] = posts.length;
+      postCountMap[profile.clerk_id] = posts.length;
     }
 
     // 각 프로필에 활동 정보 추가
     const enrichedProfiles = clientProfiles.map((profile) => ({
       ...profile,
-      lastActive: lastActiveMap[profile.id] || null,
-      totalPosts: postCountMap[profile.id] || 0,
+      lastActive: lastActiveMap[profile.clerk_id] || null,
+      totalPosts: postCountMap[profile.clerk_id] || 0,
     }));
 
     return enrichedProfiles;
@@ -668,7 +668,7 @@ export const adminUpdateEmail = mutation({
     // 대상 프로필 조회
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.targetUserId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.targetUserId))
       .first();
 
     if (!profile) {

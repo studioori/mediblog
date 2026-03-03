@@ -16,11 +16,9 @@ const mutations = {
 };
 
 interface Profile {
-  id: string;
+  clerk_id: string;
   email: string | undefined;
   center_name: string;
-  department?: string;
-  region: string | undefined;
   plan_tier: 'free' | 'basic' | 'premium';
   monthly_limit: number;
   current_usage: number;
@@ -54,7 +52,7 @@ interface AuthContextType {
   // Demo mode
   isDemo: boolean;
   demoProfile: SimulationProfile | null;
-  startDemo: (hospitalName: string, region: string, department?: string) => void;
+  startDemo: (hospitalName: string, region: string) => void;
   endDemo: () => void;
 }
 
@@ -63,8 +61,7 @@ interface SimulationProfile {
   id: string;
   center_name: string;
   region: string;
-  department?: string;
-  writing_tone_prompt: string | null;
+
   style_config: any;
   writing_style?: string;
   content_length?: string;
@@ -91,13 +88,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [demoProfile, setDemoProfile] = React.useState<SimulationProfile | null>(null);
 
   // Start demo mode
-  const startDemo = useCallback((hospitalName: string, region: string, department?: string) => {
+  const startDemo = useCallback((hospitalName: string, region: string) => {
     const demoUser: SimulationProfile = {
       id: 'demo_user',
       center_name: hospitalName,
       region,
-      department,
-      writing_tone_prompt: null,
+
       style_config: null,
       writing_style: 'warm_friendly',
       content_length: 'medium',
@@ -158,11 +154,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 프로필 데이터 변환
   const profile: Profile | null = profileData ? {
-    id: profileData.id,
+    clerk_id: profileData.clerk_id,
     email: profileData.email,
     center_name: profileData.center_name,
-    department: profileData.department,
-    region: profileData.region,
     plan_tier: profileData.plan_tier as 'free' | 'basic' | 'premium',
     monthly_limit: profileData.monthly_limit,
     current_usage: profileData.current_usage,
@@ -232,9 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const hospitalName = (user.unsafeMetadata?.hospital as string) || 
                               (user.publicMetadata?.hospital as string) || 
                               '병원명 미설정';
-          const department = (user.unsafeMetadata?.department as string) || 
-                            (user.publicMetadata?.department as string) || 
-                            undefined;
+
           const region = (user.unsafeMetadata?.region as string) || 
                         (user.publicMetadata?.region as string) || 
                         '';
@@ -243,8 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: userId,
             email: userEmail || undefined,
             center_name: hospitalName,
-            department: department,
-            region: region,
+
             plan_tier: 'free',
           });
           console.log('Profile created successfully');

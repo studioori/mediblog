@@ -128,7 +128,7 @@ const Header = () => {
           department={profile.department}
           maxImageCount={profile.max_image_count}
           initialConfig={(profile as any).style_config || { styleReferenceText: '', customPrompt: '' }}
-          userId={profile.id}
+          userId={profile.clerk_id}
           initialWritingStyle={profile.writing_style}
           initialContentLength={profile.content_length}
           initialUseEmoji={profile.use_emoji}

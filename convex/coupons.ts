@@ -175,7 +175,7 @@ export const redeemCoupon = mutation({
     // 3. 프로필 조회
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_auth_id", (q) => q.eq("id", args.userId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_id", args.userId))
       .first();
 
     if (!profile) {
