@@ -32,15 +32,16 @@
 - **페이지별 상세 분석**: 각 페이지의 화면 구성, 사용 컴포넌트, Hooks 정리
 - **컴포넌트 분류**:
   - UI 프리미티브 (shadcn/ui 50+개)
-  - 페이지 전용 컴포넌트 (Index용 9개, Admin용 6개)
+  - 페이지 전용 컴포넌트 (Index용 10개, Admin용 6개)
   - 공유 컴포넌트 (Header, ThemeToggle, NavLink)
-- **컴포넌트 계층 구조**: 전체 컴포넌트 트리 다이어그램
+- **컴포넌트 계층 구조**: 전체 컴포넌트 트리 다이어그램 (FaceBlurModal 포함)
 - **상태 관리 아키텍처**: Provider Stack 구조 (QueryClient, Theme, Auth, Convex)
 - **데이터 흐름**: 블로그 생성 플로우, 인증 플로우 시각화
+- **Hooks**: usePhotoBlog, useAuth, useToast, useFaceDetection
 
 | 관련 기능 | 관련 파일 |
 |----------|----------|
-| 라우팅, UI 구조, 컴포넌트 계층, 상태 관리 | `src/pages/`, `src/components/`, `src/contexts/AuthContext.tsx` |
+| 라우팅, UI 구조, 컴포넌트 계층, 상태 관리, 얼굴 모자이크 | `src/pages/`, `src/components/`, `src/contexts/AuthContext.tsx` |
 
 ---
 
@@ -48,10 +49,10 @@
 
 **전체 프로젝트 분석 문서**
 
-- **프로젝트 개요**: AI 기반 블로그 생성 플랫폼, 핵심 기능 5가지
-- **기술 스택**: React 18, TypeScript, Vite, Convex, Google Gemini API, Clerk
-- **프로젝트 구조**: 디렉토리 구조 및 각 폴더 역할
-- **데이터베이스 스키마**: profiles, user_roles, generated_posts, activity_logs, coupons 테이블 상세
+- **프로젝트 개요**: AI 기반 블로그 생성 플랫폼, 핵심 기능 6가지 (얼굴 모자이크 포함)
+- **기술 스택**: React 18, TypeScript, Vite, Convex, Google Gemini API, Clerk, face-api.js
+- **프로젝트 구조**: 디렉토리 구조 및 각 폴더 역할 (docs/, hooks/useFaceDetection.ts, lib/faceBlur.ts 포함)
+- **데이터베이스 스키마**: profiles (department 필드 제거), user_roles, generated_posts, activity_logs, coupons 테이블 상세
 - **핵심 기능 플로우**: 사진 업로드/블로그 생성, 인증, 데모 모드 흐름도
 - **AI 블로그 생성 가이드라인**:
   - 의료법 준수 (금지어, 표현 제한)
@@ -64,7 +65,7 @@
 
 | 관련 기능 | 관련 파일 |
 |----------|----------|
-| 전체 시스템, 인증, AI 생성, 관리자, DB 스키마 | 전체 프로젝트 |
+| 전체 시스템, 인증, AI 생성, 관리자, DB 스키마, 얼굴 인식 | 전체 프로젝트 |
 
 ---
 
@@ -73,11 +74,11 @@
 **AI 어시스턴트(WARP)용 프로젝트 가이드**
 
 - **프로젝트 개요**: Mediblog 브랜딩, 타겟 사용자
-- **기술 스택**: Frontend/Backend/UI/State Management/Routing
+- **기술 스택**: Frontend/Backend/UI/State Management/Routing, face-api.js
 - **공통 명령어**: npm install, dev, build, lint, preview, convex dev
 - **환경 변수**: VITE_CONVEX_URL, VITE_CLERK_PUBLISHABLE_KEY, GOOGLE_API_KEY
 - **아키텍처**:
-  - 디렉토리 구조
+  - 디렉토리 구조 (docs/, hooks/useFaceDetection.ts, lib/faceBlur.ts 포함)
   - Convex 함수 패턴 (Queries, Mutations, Actions)
   - 인증 플로우 (Clerk + Convex)
   - 블로그 생성 플로우
@@ -90,7 +91,7 @@
 
 | 관련 기능 | 관련 파일 |
 |----------|----------|
-| 개발 환경, 코딩 패턴, 브랜딩 | 전체 프로젝트 |
+| 개발 환경, 코딩 패턴, 브랜딩, 얼굴 인식 | 전체 프로젝트 |
 
 ---
 
@@ -156,6 +157,9 @@
 
 | 날짜 | 문서 | 변경 내용 |
 |------|------|----------|
+| 2026-03-04 | `SCREEN_MAPPING.md` | FaceBlurModal 컴포넌트, useFaceDetection 훅, 컴포넌트 계층 구조 업데이트 |
+| 2026-03-04 | `PROJECT_ANALYSIS.md` | 얼굴 인식 기능 추가, department 필드 제거, 기술 스택(face-api.js) 업데이트 |
+| 2026-03-04 | `AGENTS.md` | 얼굴 인식 관련 파일 구조, docs/ 폴더 추가 |
 | 2026-03-04 | `docs/face-blur-implementation.md` | 적용 기능 섹션 추가 (onApply prop, base64ToFile) |
 | 2026-03-04 | `DOCS_INDEX.md` | 최초 생성 |
 | 2026-03-03 | `SCREEN_MAPPING.md` | 최초 작성 |

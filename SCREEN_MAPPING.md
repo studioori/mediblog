@@ -74,12 +74,14 @@
 | RecentPostsList | `src/components/RecentPostsList.tsx` | 최근 글 목록 |
 | CouponRedeem | `src/components/CouponRedeem.tsx` | 쿠폰 등록 |
 | AdminSimulationBar | `src/components/AdminSimulationBar.tsx` | 관리자 시뮬레이션 |
+| FaceBlurModal | `src/components/FaceBlurModal.tsx` | 얼굴 모자이크 처리 |
 | Button, Alert | `src/components/ui/*.tsx` | shadcn/ui |
 
 **Hooks**:
 - `usePhotoBlog` - 블로그 생성 로직
 - `useAuth` - 인증 상태
 - `useToast` - 알림
+- `useFaceDetection` - 얼굴 인식 (face-api.js)
 
 ---
 
@@ -256,6 +258,7 @@
 | RecentPostsList | `src/components/RecentPostsList.tsx` | 최근 생성 글 목록 |
 | CouponRedeem | `src/components/CouponRedeem.tsx` | 쿠폰 등록 |
 | AdminSimulationBar | `src/components/AdminSimulationBar.tsx` | 관리자 시뮬레이션 |
+| FaceBlurModal | `src/components/FaceBlurModal.tsx` | 얼굴 모자이크 처리 모달 |
 | LoadingSkeleton | `src/components/LoadingSkeleton.tsx` | 로딩 상태 |
 | GeneratedContent | `src/components/GeneratedContent.tsx` | 생성 콘텐츠 표시 |
 | ActivityForm | `src/components/ActivityForm.tsx` | 활동 입력 폼 |
@@ -325,7 +328,10 @@ App.tsx (Provider Stack)
     │   ├── RecentPostsList
     │   │   └── PostItem[] (미리보기 모달)
     │   │
-    │   └── Footer
+    │   ├── Footer
+    │   │
+    │   └── FaceBlurModal (모달)
+    │       └── Dialog (얼굴 모자이크 처리)
     │
     ├── Auth (/auth) ─────────────────────────────
     │   ├── 브랜드 헤더 (로고, 타이틀)
@@ -483,9 +489,9 @@ App.tsx (Provider Stack)
 - `src/pages/Admin.tsx` - 관리자 대시보드
 - `src/pages/NotFound.tsx` - 404
 
-### 커스텀 컴포넌트 (16개)
+### 커스텀 컴포넌트 (17개)
 - 공유: Header, ThemeToggle, NavLink
-- Index용: PhotoUploader, PhotoBlogResult, RecentPostsList, CouponRedeem, AdminSimulationBar, LoadingSkeleton, GeneratedContent, ActivityForm, CategoryChips
+- Index용: PhotoUploader, PhotoBlogResult, RecentPostsList, CouponRedeem, AdminSimulationBar, FaceBlurModal, LoadingSkeleton, GeneratedContent, ActivityForm, CategoryChips
 - Admin용: AdminHeader, StatsWidgets, GlobalActivityFeed, StyleConfigModal, UsageHistoryModal, CouponGenerator
 
 ### UI 프리미티브 (50+개)

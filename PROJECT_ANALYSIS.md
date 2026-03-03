@@ -9,8 +9,9 @@
 1. **사진 업로드**: 최대 5장의 병원 활동 사진 업로드 (드래그 앤 드롭 지원)
 2. **AI 블로그 생성**: Google Gemini API를 활용하여 사진 분석 및 블로그 글 작성
 3. **네이버 블로그 복사**: 생성된 글을 네이버 블로그용 HTML 형식으로 복사
-4. **데모 모드**: 회원가입 없이 서비스 테스트 가능 (배포 시 제거 예정)
-5. **관리자 패널**: 사용자 관리, 통계 확인, 쿠폰 생성 기능
+4. **얼굴 모자이크 처리**: 업로드된 사진에서 얼굴을 감지하여 모자이크/이모티콘 처리 (face-api.js)
+5. **데모 모드**: 회원가입 없이 서비스 테스트 가능 (배포 시 제거 예정)
+6. **관리자 패널**: 사용자 관리, 통계 확인, 쿠폰 생성 기능
 
 ---
 
@@ -36,6 +37,7 @@
 ### 기타 라이브러리
 - **browser-image-compression**: 이미지 압축 (클라이언트)
 - **dnd-kit**: 드래그 앤 드롭, 사진 순서 변경
+- **face-api.js**: 얼굴 인식 및 모자이크 처리 (`@vladmandic/face-api`)
 - **sonner**: 토스트 알림
 - **next-themes**: 다크 모드 지원
 
@@ -54,14 +56,22 @@ mediblog/
 │   ├── coupons.ts           # 쿠폰 관리
 │   └── crons.ts            # 스케줄러 작업 (사용량 리셋)
 │
+├── docs/                      # 프로젝트 문서
+│   └── face-blur-implementation.md  # 얼굴 모자이크 기능 구현 가이드
+│
 ├── src/                      # 프론트엔드 소스
 │   ├── components/            # React 컴포넌트
 │   │   ├── admin/           # 관리자용 컴포넌트
-│   │   └── ui/             # shadcn/ui 기본 컴포넌트
+│   │   ├── ui/             # shadcn/ui 기본 컴포넌트
+│   │   └── FaceBlurModal.tsx # 얼굴 모자이크 처리 모달
 │   ├── contexts/            # React Context
 │   ├── hooks/               # Custom Hooks
-│   ├── pages/               # 페이지 컴포넌트
+│   │   ├── useFaceDetection.ts  # 얼굴 인식 훅 (face-api.js)
+│   │   └── usePhotoBlog.ts      # 블로그 생성 로직
 │   ├── lib/                 # 유틸리티 함수
+│   │   ├── faceBlur.ts      # 모자이크/이모티콘 처리
+│   │   └── utils.ts         # 공통 유틸리티
+│   ├── pages/               # 페이지 컴포넌트
 │   └── types/               # TypeScript 타입 정의
 │
 ├── public/                   # 정적 파일
@@ -77,10 +87,9 @@ mediblog/
 
 #### `profiles`
 사용자 프로필 및 구독 정보
-- `id`: Clerk 사용자 ID
+- `clerk_id`: Clerk 사용자 ID
 - `email`: 이메일
 - `center_name`: 병원명
-- `department`: 진료과 (선택)
 - `region`: 지역 (선택)
 - `plan_tier`: 플랜 등급 (free/basic/premium)
 - `monthly_limit`: 월간 생성 제한
@@ -655,4 +664,5 @@ npm run preview
 
 ## 문서 갱신 이력
 
+- **2026-03-04**: 얼굴 인식 기능(face-api.js) 추가, department 필드 제거 반영
 - **2026-02-27**: 초기 프로젝트 분석 문서 작성

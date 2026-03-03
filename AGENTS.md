@@ -60,10 +60,17 @@ See `.env.example.convex` for Convex configuration template.
 src/
 ├── components/       # React components
 │   ├── admin/       # Admin panel components
-│   └── ui/          # shadcn/ui primitives (auto-generated)
+│   ├── ui/          # shadcn/ui primitives (auto-generated)
+│   └── FaceBlurModal.tsx  # Face blur modal
 ├── contexts/        # React contexts (AuthContext)
-├── hooks/           # Custom hooks (usePhotoBlog, use-toast, etc.)
+├── hooks/           # Custom hooks
+│   ├── usePhotoBlog.ts
+│   ├── useFaceDetection.ts  # Face detection (face-api.js)
+│   └── use-toast.ts
 ├── lib/             # Utility functions and Convex client setup
+│   ├── convex.ts
+│   ├── faceBlur.ts  # Face blur/emoji processing
+│   └── utils.ts
 ├── pages/           # Route pages (Index, Auth, Admin)
 └── types/           # TypeScript type definitions
 
@@ -75,6 +82,9 @@ convex/
 ├── admin.ts         # Admin-only queries and mutations
 ├── coupons.ts       # Coupon management
 └── crons.ts         # Scheduled tasks
+
+docs/
+└── face-blur-implementation.md  # Face blur feature documentation
 ```
 
 ### Key Patterns
