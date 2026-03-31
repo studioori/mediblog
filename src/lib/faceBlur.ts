@@ -1,6 +1,6 @@
-import { type FaceBoundingBox } from '@/hooks/useFaceDetection';
+import { type FaceBoundingBox, type BlurMode, toSquareBox } from '@/hooks/useFaceDetection';
 
-export type BlurMode = 'mosaic' | 'emoji' | 'none';
+export type { BlurMode };
 
 const EMOJI_LIST = ['😊', '😄', '🙂', '😐', '😎', '🤗'];
 
@@ -57,17 +57,18 @@ function applyEmoji(
   x: number,
   y: number,
   width: number,
-  height: number
+  height: number,
+  emoji: string = '😊',
+  scale: number = 1.0
 ): void {
-  const emoji = getRandomEmoji();
-  const fontSize = Math.max(Math.min(width, height) * 0.8, 20);
+  const fontSize = Math.max(Math.min(width, height) * scale, 20);
   
   ctx.font = `${fontSize}px Arial`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
   const centerX = x + width / 2;
-  const centerY = y + height / 2;
+  const centerY = y + height / 2 - fontSize * 0.08;
   
   ctx.fillText(emoji, centerX, centerY);
 }
@@ -75,7 +76,6 @@ function applyEmoji(
 export function applyFaceBlur(
   imageSource: HTMLImageElement | HTMLCanvasElement | string,
   faces: FaceBoundingBox[],
-  mode: BlurMode = 'mosaic',
   targetWidth: number = 1000
 ): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -97,7 +97,7 @@ export function applyFaceBlur(
 
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      if (mode === 'none' || faces.length === 0) {
+      if (faces.length === 0) {
         resolve(canvas.toDataURL('image/jpeg', 0.9));
         return;
       }
@@ -106,11 +106,21 @@ export function applyFaceBlur(
       const scaleY = canvas.height / sourceHeight;
 
       for (const face of faces) {
+        const mode = face.mode || 'mosaic';
+        if (mode === 'none') continue;
+
+        const squareFace = toSquareBox(face);
+        
         const padding = 0.15;
-        const paddedX = Math.max(0, face.x - face.width * padding);
-        const paddedY = Math.max(0, face.y - face.height * padding);
-        const paddedWidth = face.width * (1 + padding * 2);
-        const paddedHeight = face.height * (1 + padding * 2);
+        const baseX = squareFace.x + (squareFace.offsetX || 0);
+        const baseY = squareFace.y + (squareFace.offsetY || 0);
+        const faceWidth = squareFace.width * (squareFace.scale || 1.0);
+        const faceHeight = squareFace.height * (squareFace.scale || 1.0);
+
+        const paddedX = Math.max(0, baseX - faceWidth * padding);
+        const paddedY = Math.max(0, baseY - faceHeight * padding);
+        const paddedWidth = faceWidth * (1 + padding * 2);
+        const paddedHeight = faceHeight * (1 + padding * 2);
 
         const scaledX = paddedX * scaleX;
         const scaledY = paddedY * scaleY;
@@ -120,7 +130,15 @@ export function applyFaceBlur(
         if (mode === 'mosaic') {
           applyMosaic(ctx, scaledX, scaledY, scaledWidth, scaledHeight);
         } else if (mode === 'emoji') {
-          applyEmoji(ctx, scaledX, scaledY, scaledWidth, scaledHeight);
+          applyEmoji(
+            ctx,
+            scaledX,
+            scaledY,
+            scaledWidth,
+            scaledHeight,
+            squareFace.emoji || '😊',
+            squareFace.scale || 1.0
+          );
         }
       }
 

@@ -1,11 +1,20 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import * as faceapi from '@vladmandic/face-api';
 
+export type BlurMode = 'mosaic' | 'emoji' | 'none';
+
 export interface FaceBoundingBox {
   x: number;
   y: number;
   width: number;
   height: number;
+  emoji?: string;
+  scale?: number;
+  offsetX?: number;
+  offsetY?: number;
+  id?: string;
+  mode?: BlurMode;
+  selected?: boolean;
 }
 
 export interface FaceDetectionResult {
@@ -24,6 +33,38 @@ interface UseFaceDetectionReturn {
 }
 
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
+
+export const EMOJI_LIST = ['😊', '😄', '🙂', '😐', '😎', '🤗'];
+
+export const toSquareBox = (face: FaceBoundingBox): FaceBoundingBox => {
+  const size = Math.max(face.width, face.height);
+  const centerX = face.x + face.width / 2;
+  const centerY = face.y + face.height / 2;
+  
+  return {
+    ...face,
+    x: centerX - size / 2,
+    y: centerY - size / 2,
+    width: size,
+    height: size,
+  };
+};
+
+export const initializeFaceBoxes = (faces: FaceBoundingBox[]): FaceBoundingBox[] => {
+  return faces.map((face, index) => {
+    const squareFace = toSquareBox(face);
+    return {
+      ...squareFace,
+      id: `face-${index}`,
+      emoji: EMOJI_LIST[Math.floor(Math.random() * EMOJI_LIST.length)],
+      scale: 1.0,
+      offsetX: 0,
+      offsetY: 0,
+      mode: 'emoji' as BlurMode,
+      selected: false,
+    };
+  });
+};
 
 let isModelsLoaded = false;
 let loadingPromise: Promise<void> | null = null;

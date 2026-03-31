@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { X, GripVertical, Loader2, ImagePlus, Upload } from 'lucide-react';
+import type { FaceBoundingBox } from '@/hooks/useFaceDetection';
 
 // 진료과별 키워드 예시
 const DEPARTMENT_KEYWORDS: Record<string, string[]> = {
@@ -177,6 +178,8 @@ export interface PhotoItem {
   file: File;
   preview: string;
   keyword: string;
+  originalPreview?: string;
+  faceSettings?: FaceBoundingBox[];
 }
 
 interface PhotoUploaderProps {

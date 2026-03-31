@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, AlertCircle, ImageIcon, Lock, LogOut, MessageSquare, FileText } from 'lucide-react';
 import HealthQAInput, { type HealthQAInputData } from '@/components/HealthQAInput';
 import HealthQAResult from '@/components/HealthQAResult';
+import type { FaceBoundingBox } from '@/hooks/useFaceDetection';
 
 const Index = () => {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -129,19 +130,16 @@ const Index = () => {
     setSelectedPhoto(null);
   };
 
-  const handlePhotoApply = (processedFile: File | null, photoId: string) => {
+  const handlePhotoApply = (processedFile: File | null, photoId: string, faceSettings?: FaceBoundingBox[]) => {
     if (processedFile) {
-      const oldPreview = photos.find(p => p.id === photoId)?.preview;
-      if (oldPreview) {
-        URL.revokeObjectURL(oldPreview);
-      }
-
       setPhotos(prev => prev.map(p => {
         if (p.id === photoId) {
           return {
             ...p,
             file: processedFile,
             preview: URL.createObjectURL(processedFile),
+            originalPreview: p.originalPreview || p.preview,
+            faceSettings: faceSettings,
           };
         }
         return p;
