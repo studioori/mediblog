@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useAction, useMutation } from 'convex/react';
 import { useAuth } from '@/contexts/AuthContext';
 import { type PhotoItem } from '@/components/PhotoUploader';
+import { type SimulationProfile } from '@/types/profile';
 
-// Convex 함수 이름 (codegen 전 사용)
 const actions = {
   generateBlog: 'generateBlog:generateBlog' as const,
 };
@@ -18,25 +18,6 @@ interface GeneratedBlog {
   title: string;
   content: string;
   hashtags: string[];
-}
-
-interface SimulationProfile {
-  id: string;
-  center_name: string;
-  region: string;
-  department?: string;
-  writing_tone_prompt: string | null;
-  style_config: any;
-  // New style settings
-  writing_style?: string;
-  content_length?: string;
-  use_emoji?: boolean;
-  // Demo mode specific fields
-  is_active?: boolean;
-  current_usage?: number;
-  monthly_limit?: number;
-  plan_tier?: 'free' | 'basic' | 'premium';
-  max_image_count?: number;
 }
 
 interface UsePhotoBlogOptions {

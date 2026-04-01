@@ -35,7 +35,7 @@ const CouponRedeem = ({ onRedeemSuccess }: CouponRedeemProps) => {
       return;
     }
 
-    if (!profile?.id) {
+    if (!profile?.clerk_id) {
       toast({
         title: '로그인 필요',
         description: '로그인이 필요합니다.',

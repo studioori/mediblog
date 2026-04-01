@@ -25,29 +25,9 @@ import GlobalActivityFeed from '@/components/admin/GlobalActivityFeed';
 import StyleConfigModal from '@/components/admin/StyleConfigModal';
 import UsageHistoryModal from '@/components/admin/UsageHistoryModal';
 import CouponGenerator from '@/components/admin/CouponGenerator';
+import { ProfileWithAnalytics, ProfileForUsage } from '@/types/profile';
 
-interface Profile {
-  _id: string;
-  id: string;
-  email?: string;
-  center_name: string;
-  region?: string;
-  department?: string;
-  plan_tier: string;
-  monthly_limit: number;
-  current_usage: number;
-  is_active: boolean;
-  created_at: number;
-  writing_tone_prompt?: string | null;
-  max_image_count: number;
-  style_config?: any;
-  lastActive?: number | null;
-  totalPosts?: number;
-  // New style settings
-  writing_style?: string;
-  content_length?: string;
-  use_emoji?: boolean;
-}
+type Profile = ProfileWithAnalytics;
 
 interface Stats {
   totalUsers: number;
@@ -198,7 +178,7 @@ const Admin = () => {
     try {
       await updateProfile({
         adminUserId: user.id,
-        targetUserId: selectedProfile.id,
+        targetUserId: selectedProfile.clerk_id,
         updates: {
           center_name: editCenterName,
           region: editRegion,
@@ -209,20 +189,18 @@ const Admin = () => {
         },
       });
 
-      // Update email if changed
       if (editEmail !== originalEmail && editEmail.trim()) {
         await updateEmail({
           adminUserId: user.id,
-          targetUserId: selectedProfile.id,
+          targetUserId: selectedProfile.clerk_id,
           newEmail: editEmail.trim(),
         });
       }
 
-      // Update role if changed
       if (editIsAdminRole) {
         await updateUserRole({
           adminUserId: user.id,
-          targetUserId: selectedProfile.id,
+          targetUserId: selectedProfile.clerk_id,
           role: 'admin',
         });
       }
@@ -252,7 +230,7 @@ const Admin = () => {
     try {
       await deleteUser({
         adminUserId: user.id,
-        targetUserId: userToDelete.id,
+        targetUserId: userToDelete.clerk_id,
       });
 
       toast({
@@ -709,7 +687,7 @@ const Admin = () => {
           department={styleModalProfile.department}
           maxImageCount={styleModalProfile.max_image_count}
           initialConfig={styleModalProfile.style_config || { styleReferenceText: '', customPrompt: '' }}
-          userId={styleModalProfile.id}
+          userId={styleModalProfile.clerk_id}
           initialWritingStyle={styleModalProfile.writing_style}
           initialContentLength={styleModalProfile.content_length}
           initialUseEmoji={styleModalProfile.use_emoji}
@@ -722,7 +700,7 @@ const Admin = () => {
           isOpen={usageModalOpen}
           onClose={() => setUsageModalOpen(false)}
           profile={{
-            id: usageModalProfile.id,
+            clerk_id: usageModalProfile.clerk_id,
             center_name: usageModalProfile.center_name,
             email: usageModalProfile.email || '',
           }}

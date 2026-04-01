@@ -1,16 +1,8 @@
-/**
- * 건강정보 Q&A 생성 커스텀 훅
- * 
- * AI(Gemini)를 사용하여 원장이 작성한 Q&A 초안을 블로그용으로 다듬어주는 기능
- * 
- * @lastUpdated 2025-03-24
- */
-
 import { useState } from 'react';
 import { useAction, useMutation } from 'convex/react';
 import { useAuth } from '@/contexts/AuthContext';
+import { type SimulationProfile } from '@/types/profile';
 
-// Convex 함수 이름 (codegen 전 사용)
 const actions = {
   generateHealthQA: 'generateHealthQA:generateHealthQA' as const,
 };
@@ -20,10 +12,6 @@ const mutations = {
   incrementUsage: 'users:incrementUsage' as const,
   logActivity: 'users:logActivity' as const,
 };
-
-// ============================================
-// Types
-// ============================================
 
 export interface HealthQAInputData {
   draft: string;
@@ -40,13 +28,6 @@ export interface GeneratedHealthQA {
 
 interface UseHealthQAOptions {
   simulationProfile?: SimulationProfile | null;
-}
-
-interface SimulationProfile {
-  id: string;
-  center_name: string;
-  region: string;
-  department?: string;
 }
 
 interface UseHealthQAReturn {

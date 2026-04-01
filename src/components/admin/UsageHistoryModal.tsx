@@ -30,19 +30,18 @@ interface UsageHistoryModalProps {
 }
 
 const UsageHistoryModal = ({ isOpen, onClose, profile }: UsageHistoryModalProps) => {
-  // Fetch activity logs
   const logsData = useQuery(
     queries.getActivityLogsByUser as any,
     profile?.clerk_id ? { userId: profile.clerk_id, limit: 50 } : 'skip'
   );
 
-  // Fetch total posts count
   const totalPosts = useQuery(
     queries.getPostCountByUser as any,
     profile?.clerk_id ? { userId: profile.clerk_id } : 'skip'
   );
 
-  // Transform logs
+  const isLoading = logsData === undefined || totalPosts === undefined;
+
   const logs: ActivityLog[] = (logsData || []).map((log: any) => ({
     _id: log._id,
     action_type: log.action_type,

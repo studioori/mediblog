@@ -29,8 +29,8 @@ const patchEnvironment = (): void => {
         Canvas: OffscreenCanvas,
         createCanvasElement: createOffscreenCanvas,
       });
-    } else {
-      (faceapi as any).monkeyPatch?.({
+    } else if ((faceapi as any).env?.monkeyPatch) {
+      (faceapi as any).env.monkeyPatch({
         Canvas: OffscreenCanvas,
         createCanvasElement: createOffscreenCanvas,
       });

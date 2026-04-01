@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import PhotoUploader, { type PhotoItem } from '@/components/PhotoUploader';
 import PhotoBlogResult from '@/components/PhotoBlogResult';
 import RecentPostsList from '@/components/RecentPostsList';
-import AdminSimulationBar, { type SimulationProfile } from '@/components/AdminSimulationBar';
+import AdminSimulationBar, { type SimulationProfile as SimulationProfileMin } from '@/components/AdminSimulationBar';
 import CouponRedeem from '@/components/CouponRedeem';
 import FaceBlurModal from '@/components/FaceBlurModal';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import type { FaceBoundingBox } from '@/hooks/useFaceDetection';
 
 const Index = () => {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
-  const [simulationProfile, setSimulationProfile] = useState<SimulationProfile | null>(null);
+  const [simulationProfile, setSimulationProfile] = useState<SimulationProfileMin | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoItem | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();

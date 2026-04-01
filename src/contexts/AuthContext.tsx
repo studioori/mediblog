@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { useAuth, useUser, useClerk } from '@clerk/clerk-react';
 import { useQuery, useMutation } from 'convex/react';
+import { Profile, SimulationProfile } from '@/types/profile';
 
-// Convex 함수 타입 정의 (codegen 이후에는 api import로 대체 가능)
 const queries = {
   getProfileByUserId: 'users:getProfileByUserId' as const,
   getUserRole: 'users:getUserRole' as const,
@@ -14,25 +14,6 @@ const mutations = {
   createOrUpdateUserRole: 'users:createOrUpdateUserRole' as const,
   linkPendingProfile: 'users:linkPendingProfile' as const,
 };
-
-interface Profile {
-  clerk_id: string;
-  email: string | undefined;
-  center_name: string;
-  plan_tier: 'free' | 'basic' | 'premium';
-  monthly_limit: number;
-  current_usage: number;
-  is_active: boolean;
-  created_at: number;
-  writing_tone_prompt: string | null;
-  max_image_count: number;
-  subscription_expires_at: number | null;
-  // New style settings
-  writing_style?: string;
-  content_length?: string;
-  use_emoji?: boolean;
-  style_config?: any;
-}
 
 interface UserRole {
   role: 'admin' | 'user';
@@ -49,29 +30,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => void;
   canGenerate: boolean;
-  // Demo mode
   isDemo: boolean;
   demoProfile: SimulationProfile | null;
   startDemo: (hospitalName: string, region: string) => void;
   endDemo: () => void;
-}
-
-// Simulation profile type (same as used in usePhotoBlog)
-interface SimulationProfile {
-  id: string;
-  center_name: string;
-  region: string;
-
-  style_config: any;
-  writing_style?: string;
-  content_length?: string;
-  use_emoji?: boolean;
-  // Demo mode specific fields
-  is_active: boolean;
-  current_usage: number;
-  monthly_limit: number;
-  plan_tier: 'free' | 'basic' | 'premium';
-  max_image_count: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,16 +53,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const startDemo = useCallback((hospitalName: string, region: string) => {
     const demoUser: SimulationProfile = {
       id: 'demo_user',
+      clerk_id: 'demo_user',
       center_name: hospitalName,
       region,
-
       style_config: null,
       writing_style: 'warm_friendly',
       content_length: 'medium',
       use_emoji: true,
       is_active: true,
       current_usage: 0,
-      monthly_limit: 9999, // 무제한
+      monthly_limit: 9999,
       plan_tier: 'premium',
       max_image_count: 10,
     };
@@ -154,18 +116,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 프로필 데이터 변환
   const profile: Profile | null = profileData ? {
+    _id: profileData._id,
     clerk_id: profileData.clerk_id,
     email: profileData.email,
     center_name: profileData.center_name,
+    region: profileData.region,
+    department: profileData.department,
     plan_tier: profileData.plan_tier as 'free' | 'basic' | 'premium',
     monthly_limit: profileData.monthly_limit,
     current_usage: profileData.current_usage,
     is_active: profileData.is_active,
     created_at: profileData.created_at,
+    updated_at: profileData.updated_at,
     writing_tone_prompt: profileData.writing_tone_prompt ?? null,
     max_image_count: profileData.max_image_count,
     subscription_expires_at: profileData.subscription_expires_at ?? null,
-    // New style settings
     writing_style: profileData.writing_style,
     content_length: profileData.content_length,
     use_emoji: profileData.use_emoji,
