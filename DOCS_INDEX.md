@@ -10,17 +10,63 @@
 
 **얼굴 모자이크 기능 구현 가이드**
 
-- **기술 스택**: face-api.js (`@vladmandic/face-api`) SSD MobileNet V1, Canvas API
+- **기술 스택**: `@vladmandic/face-api` (유지보수 포크), SSD MobileNet V1, Canvas API, browser-image-compression
 - **주요 기능**: 얼굴 감지, 모자이크/이모티콘 처리, 원본 유지 옵션
+- **처리 파라미터**: 블록 크기 10px, 얼굴 패딩 15%, 처리 너비 1000px, JPEG 품질 0.9
+- **이모티콘 목록**: 😊 😄 🙂 😐 😎 🤗 (랜덤 선택)
+- **이미지 압축**: browser-image-compression (1MB, 1024px, 품질 0.8, JPEG)
 - **적용 기능**: 처리된 이미지(base64)를 File로 변환하여 업로드 목록에 반영
 - **성능**: 1024px 이미지 기준 ~100ms 처리 (감지 80ms + 처리 20ms)
 - **감지 성능**: 정면 95%+, 측면 85%+, 마스크 70%+, 작은 얼굴 80%+
 - **설정 가이드**: minConfidence(0.2 권장), maxResults(100) 조정 방법 포함
-- **모델 전환 이력**: MediaPipe → face-api.js 전환 사유 및 장점 정리
+- **향후 계획**: `docs/face-adjustment-plan.md`에서 개별 얼굴 조정 로드맵 확인 가능
 
 | 관련 기능 | 관련 파일 |
 |----------|----------|
 | 얼굴 인식, 이미지 처리, 모자이크 | `src/hooks/useFaceDetection.ts`, `src/lib/faceBlur.ts`, `src/components/FaceBlurModal.tsx`, `src/components/PhotoUploader.tsx` |
+
+---
+
+### [`docs/face-adjustment-plan.md`](docs/face-adjustment-plan.md)
+
+**얼굴 모자이크 개별 조정 기능 구현 계획**
+
+- **기능 개요**: 얼굴 모자이크 처리 화면에서 개별 이모티콘의 크기와 위치 조정
+- **기술 분석**: face-api.js 조정 가능성 분석, MTCNN 대안 비교, 오픈소스 조사 결과 🔥
+- **구현 방안**: face-api.js 유지 + Canvas Overlay UI + 커스텀 SVG 핸들
+- **구현 계획**: Phase 1~5 (데이터 구조 확장 + 좌표 스케일링, Overlay 컴포넌트 + 터치 지원, 이모티콘 선택 UI + 모드 토글, 실시간 미리보기 + Undo, Polish)
+- **예상 소요 시간**: 2시간 45분 (165분) 🔥 UPDATED
+- **보강된 기능**: 🔥 NEW
+  - 좌표 스케일링 추상화 (원본 이미지 좌표 기반 저장)
+  - 단일 Undo (Ctrl+Z, structuredClone)
+  - 얼굴별 모드 오버라이드 (모자이크/이모티콘/없음)
+  - 얼굴 삭제 버튼 UI (Delete/Backspace 키)
+  - 선택 상태 시각적 표시 (점선 테두리)
+  - 모바일 터치 지원 (touch-action: none, Pointer Events)
+- **관련 문서**: [`docs/face-adjustment-test-plan.md`](docs/face-adjustment-test-plan.md) (테스트 계획)
+
+| 관련 기능 | 관련 파일 |
+|----------|----------|
+| 얼굴 인식, 이모티콘 조정, UI 인터랙션, 모바일 지원 | `src/hooks/useFaceDetection.ts`, `src/lib/faceBlur.ts`, `src/components/FaceBlurModal.tsx` |
+
+---
+
+### [`docs/face-adjustment-test-plan.md`](docs/face-adjustment-test-plan.md)
+
+**얼굴 모자이크 개별 조정 기능 - 테스트 계획**
+
+- **수동 테스트**: 6개 필수 시나리오 (기본 감지, 드래그, 리사이즈, 이모티콘 변경, 다중 얼굴, 적용/취소)
+- **테스트 이미지**: 6종 준비 필요 (단일/다중 얼굴, 측면, 작은 얼굴, 마스크)
+- **유닛 테스트**: Jest + React Testing Library, Mock 전략 포함
+- **E2E 테스트**: Playwright/Cypress 시나리오
+- **성능 테스트**: 렌더링 (< 16ms 목표), 메모리 사용량 (< 1MB 목표)
+- **브라우저 호환성**: Chrome, Firefox, Safari, Edge
+- **테스트 환경 설정**: 테스트 이미지 준비, Jest/Playwright 설정
+- **결과 기록 템플릿**: 테스트 결과 기록용 마크다운 템플릿 제공
+
+| 관련 기능 | 관련 파일 |
+|----------|----------|
+| 테스트, QA, 성능 최적화 | `src/hooks/useFaceDetection.ts`, `src/lib/faceBlur.ts`, `src/components/FaceBlurModal.tsx` |
 
 ---
 
@@ -115,25 +161,6 @@
 
 ---
 
-### [`CHANGELOG.md`](CHANGELOG.md)
-
-**버전별 변경 이력 추적**
-
-- **형식**: Keep a Changelog 기반, Semantic Versioning 준수
-- **변경 유형**: Added, Changed, Deprecated, Removed, Fixed, Security
-- **현재 버전**: 1.0.0 (2026-03-04)
-- **주요 변경사항**:
-  - 얼굴 모자이크 기능 추가 (face-api.js)
-  - DOCS_INDEX.md 문서 관리 체계 도입
-  - department 필드 제거
-  - Supabase → Convex 마이그레이션
-
-| 관련 기능 | 관련 파일 |
-|----------|----------|
-| 버전 관리, 변경 이력 | 전체 프로젝트 |
-
----
-
 ## 기능별 문서 매핑
 
 ### 🎨 프론트엔드
@@ -154,6 +181,8 @@
 | 기능 | 추천 문서 |
 |------|----------|
 | 얼굴 인식/모자이크 | `docs/face-blur-implementation.md` |
+| 이모티콘 개별 조정 (구현) | `docs/face-adjustment-plan.md` |
+| 이모티콘 개별 조정 (테스트) | `docs/face-adjustment-test-plan.md` |
 | AI 블로그 생성 가이드라인 | `PROJECT_ANALYSIS.md` |
 
 ### 🚀 배포/환경
@@ -169,33 +198,3 @@
 | 서비스 개요 | `PROJECT_ANALYSIS.md`, `AGENTS.md` |
 | 데모 모드 | `PROJECT_ANALYSIS.md` |
 | 브랜딩 | `AGENTS.md` |
-
-### 📝 버전 관리
-| 기능 | 추천 문서 |
-|------|----------|
-| 변경 이력 | `CHANGELOG.md` |
-
-### 📝 버전 관리
-| 기능 | 추천 문서 |
-|------|----------|
-| 변경 이력 | `CHANGELOG.md` |
-| 릴리즈 노트 | `CHANGELOG.md` |
-
-### 📝 버전 관리
-| 기능 | 추천 문서 |
-|------|----------|
-| 변경 이력 | `CHANGELOG.md` |
-
----
-
-## 문서 업데이트 이력
-
-| 날짜 | 문서 | 변경 내용 |
-|------|------|----------|
-| 2026-03-04 | `SCREEN_MAPPING.md` | FaceBlurModal 컴포넌트, useFaceDetection 훅, 컴포넌트 계층 구조 업데이트 |
-| 2026-03-04 | `PROJECT_ANALYSIS.md` | 얼굴 인식 기능 추가, department 필드 제거, 기술 스택(face-api.js) 업데이트 |
-| 2026-03-04 | `AGENTS.md` | 얼굴 인식 관련 파일 구조, docs/ 폴더 추가 |
-| 2026-03-04 | `docs/face-blur-implementation.md` | 적용 기능 섹션 추가 (onApply prop, base64ToFile) |
-| 2026-03-04 | `DOCS_INDEX.md` | CHANGELOG.md 섹션 추가, 버전 관리 매핑 추가 |
-| 2026-03-03 | `SCREEN_MAPPING.md` | 최초 작성 |
-| 2026-03-03 | `PROJECT_ANALYSIS.md` | 최초 작성 |

@@ -497,6 +497,4 @@ App.tsx (Provider Stack)
 ### UI 프리미티브 (50+개)
 - `src/components/ui/` - shadcn/ui 컴포넌트들
 
----
 
-*문서 작성일: 2026-03-03*

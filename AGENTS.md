@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+AI 어시스턴트용 프로젝트 가이드
 
 ## Project Overview
 
@@ -15,6 +15,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 - **UI**: shadcn/ui components + Tailwind CSS + Radix UI primitives
 - **State Management**: TanStack Query (client), Convex React hooks (backend)
 - **Routing**: react-router-dom
+- **Face Detection**: face-api.js (`@vladmandic/face-api`)
 
 ## Common Commands
 
@@ -54,39 +55,6 @@ See `.env.example.convex` for Convex configuration template.
 
 ## Architecture
 
-### Directory Structure
-
-```
-src/
-├── components/       # React components
-│   ├── admin/       # Admin panel components
-│   ├── ui/          # shadcn/ui primitives (auto-generated)
-│   └── FaceBlurModal.tsx  # Face blur modal
-├── contexts/        # React contexts (AuthContext)
-├── hooks/           # Custom hooks
-│   ├── usePhotoBlog.ts
-│   ├── useFaceDetection.ts  # Face detection (face-api.js)
-│   └── use-toast.ts
-├── lib/             # Utility functions and Convex client setup
-│   ├── convex.ts
-│   ├── faceBlur.ts  # Face blur/emoji processing
-│   └── utils.ts
-├── pages/           # Route pages (Index, Auth, Admin)
-└── types/           # TypeScript type definitions
-
-convex/
-├── schema.ts        # Database schema definitions
-├── users.ts         # User/profile management functions
-├── posts.ts         # Blog post CRUD operations
-├── generateBlog.ts  # AI blog generation action (Google Gemini)
-├── admin.ts         # Admin-only queries and mutations
-├── coupons.ts       # Coupon management
-└── crons.ts         # Scheduled tasks
-
-docs/
-└── face-blur-implementation.md  # Face blur feature documentation
-```
-
 ### Key Patterns
 
 **Convex Functions**
@@ -115,6 +83,28 @@ docs/
 - `activity_logs` - User activity tracking
 - `generated_posts` - Generated blog content
 - `coupons` - Subscription coupon management
+
+## Conventions
+
+### 코딩 컨벤션
+
+- **TypeScript**: Strict mode, no `as any`, `@ts-ignore`, `@ts-expect-error`
+- **Imports**: Use `@/` alias for `src/`
+- **Components**: Functional components with hooks
+- **Styling**: Tailwind CSS classes, shadcn/ui for UI primitives
+
+### 네이밍 규칙
+
+- **Files**: PascalCase for components (`PhotoUploader.tsx`)
+- **Hooks**: camelCase with `use` prefix (`usePhotoBlog.ts`)
+- **Constants**: UPPER_SNAKE_CASE (`EMOJI_LIST`)
+- **Types**: PascalCase (`PhotoItem`, `FaceBoundingBox`)
+
+### 커밋 메시지
+
+- 한국어 또는 영어 사용 (일관성 유지)
+- 명확한 변경 사항 설명
+- 예: "얼굴 모자이크 처리 속도 개선", "Fix: 이미지 압축 품질 조정"
 
 ## Path Aliases
 
