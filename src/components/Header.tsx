@@ -119,21 +119,25 @@ const Header = () => {
       </div>
 
       {/* User Settings Modal */}
-      {profile && (
-        <StyleConfigModal
-          isOpen={settingsModalOpen}
-          onClose={() => setSettingsModalOpen(false)}
-          centerName={profile.center_name}
-          region={profile.region}
-          department={profile.department}
-          maxImageCount={profile.max_image_count}
-          initialConfig={(profile as any).style_config || { styleReferenceText: '', customPrompt: '' }}
-          userId={profile.clerk_id}
-          initialWritingStyle={profile.writing_style}
-          initialContentLength={profile.content_length}
-          initialUseEmoji={profile.use_emoji}
-          isDemo={isDemo}
-        />
+        {profile && (
+          <StyleConfigModal
+            isOpen={settingsModalOpen}
+            onClose={() => setSettingsModalOpen(false)}
+            centerName={profile.center_name}
+            region={profile.region}
+            department={profile.department}
+            maxImageCount={profile.max_image_count}
+          initialConfig={
+            profile?.style_config
+              ? (profile.style_config as unknown as { styleReferenceText: string; customPrompt: string })
+              : { styleReferenceText: '', customPrompt: '' }
+          }
+            userId={profile.clerk_id}
+            initialWritingStyle={profile.writing_style}
+            initialContentLength={profile.content_length}
+            initialUseEmoji={profile.use_emoji}
+            isDemo={isDemo}
+          />
       )}
     </header>
   );

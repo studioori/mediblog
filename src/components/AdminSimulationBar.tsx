@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, FlaskConical, X, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { SimulationProfileMin } from '@/types/profile';
+import { SimulationProfileMin, StyleConfig } from '@/types/profile';
 
 const queries = {
   getAdminUserIds: 'admin:getAdminUserIds' as const,
@@ -14,6 +14,17 @@ const queries = {
 
 export type { SimulationProfileMin as SimulationProfile };
 
+type RawProfile = {
+  clerk_id: string;
+  is_active?: boolean;
+  center_name: string;
+  region?: string;
+  department?: string;
+  writing_tone_prompt?: string | null;
+  style_config?: unknown;
+  max_image_count: number;
+};
+
 interface AdminSimulationBarProps {
   onProfileSelect: (profile: SimulationProfileMin | null) => void;
   selectedProfile: SimulationProfileMin | null;
@@ -21,26 +32,27 @@ interface AdminSimulationBarProps {
 
 const AdminSimulationBar = ({ onProfileSelect, selectedProfile }: AdminSimulationBarProps) => {
   const { user } = useAuth();
-
   const adminUserIds = useQuery(queries.getAdminUserIds as any);
 
-  const allProfiles = useQuery(
-    queries.getAllProfiles as any,
-    user?.id ? { adminUserId: user.id } : 'skip'
-  );
+  const allProfiles = useQuery(queries.getAllProfiles as any, user?.id ? { adminUserId: user.id } : 'skip');
 
   const isLoading = adminUserIds === undefined || allProfiles === undefined;
 
-  const profiles: SimulationProfileMin[] = (allProfiles || [])
-    .filter((p: any) => p.is_active && !adminUserIds?.includes(p.clerk_id))
-    .map((p: any) => ({
+  // Map raw profiles to SimulationProfileMin shape with runtime guards
+  const profiles: SimulationProfileMin[] = (allProfiles ?? [])
+    // type guard to ensure required fields exist
+    .filter((p): p is RawProfile => {
+      return typeof p === 'object' && p !== null && typeof p.clerk_id === 'string' && typeof p.center_name === 'string';
+    })
+    .filter((p) => (p.is_active ?? true) && !(adminUserIds ?? []).includes(p.clerk_id))
+    .map((p) => ({
       id: p.clerk_id,
       clerk_id: p.clerk_id,
       center_name: p.center_name,
-      region: p.region || '',
+      region: p.region ?? '',
       department: p.department,
-      writing_tone_prompt: p.writing_tone_prompt || null,
-      style_config: p.style_config,
+      writing_tone_prompt: p.writing_tone_prompt ?? null,
+      style_config: (p.style_config as unknown as StyleConfig) ?? undefined,
       max_image_count: p.max_image_count,
     }));
 

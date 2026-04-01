@@ -79,7 +79,7 @@ const CouponRedeem = ({ onRedeemSuccess }: CouponRedeemProps) => {
   };
 
   // Format expiry date for display
-  const subscriptionExpiresAt = (profile as any)?.subscription_expires_at;
+  const subscriptionExpiresAt = (profile as unknown as { subscription_expires_at?: number | string })?.subscription_expires_at;
   const hasSubscription = subscriptionExpiresAt && new Date(subscriptionExpiresAt) > new Date();
 
   return (

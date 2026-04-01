@@ -9,6 +9,16 @@
  * 기본 Profile 타입 (Convex profiles 테이블 기반)
  * AuthContext 및 일반 사용용
  */
+export interface StyleConfig {
+  // A flexible style configuration object for blog output.
+  // Use known keys for strong typing, but allow additional keys as needed.
+  tone?: string;
+  emojiEnabled?: boolean;
+  colorTheme?: 'light' | 'dark' | 'auto';
+  fontSize?: string;
+  [key: string]: unknown;
+}
+
 export interface Profile {
   _id: string;
   clerk_id: string;
@@ -28,7 +38,7 @@ export interface Profile {
   writing_style?: string;
   content_length?: string;
   use_emoji?: boolean;
-  style_config?: any;
+  style_config?: StyleConfig;
   intro_greeting?: string;
   outro_signature?: string;
   sentence_length?: string;
@@ -51,7 +61,7 @@ export interface SimulationProfile {
   is_active?: boolean;
   max_image_count?: number;
   writing_tone_prompt?: string | null;
-  style_config?: any;
+  style_config?: StyleConfig;
   writing_style?: string;
   content_length?: string;
   use_emoji?: boolean;
@@ -75,7 +85,7 @@ export interface SimulationProfileMin {
   region: string;
   department?: string;
   writing_tone_prompt?: string | null;
-  style_config?: any;
+  style_config?: StyleConfig;
   max_image_count: number;
 }
 

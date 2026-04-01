@@ -36,7 +36,7 @@ class MockImage {
   }
 }
 
-global.Image = MockImage as any
+(globalThis as any).Image = MockImage
 
 vi.mock('@vladmandic/face-api', () => ({
   nets: {

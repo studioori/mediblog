@@ -79,7 +79,7 @@ const RETRY_DELAY_MS = 1000;
  */
 const stripMarkdownCodeBlocks = (text: string): string => {
   // 마크다운 코드 블록 제거 (```json ... ``` 형식)
-  let cleaned = text.trim();
+  const cleaned = text.trim();
 
   // 백틱으로 감싸인 JSON 추출 (가장 간단한 방식)
   // ``` 또는 ```json 또는 ```JSON 모두 처리

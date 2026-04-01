@@ -90,13 +90,11 @@ const GlobalActivityFeed = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch all posts
   const postsData = useQuery(
     queries.getAllPosts as any,
     { limit: 50 }
   );
 
-  // Fetch all profiles for user info
   const profilesData = useQuery(
     queries.getAllProfiles as any,
     user?.id ? { adminUserId: user.id } : 'skip'

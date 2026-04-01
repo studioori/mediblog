@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FunctionReference } from 'convex/server';
 import { useAction, useMutation } from 'convex/react';
 import { useAuth } from '@/contexts/AuthContext';
 import { type SimulationProfile } from '@/types/profile';

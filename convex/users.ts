@@ -582,13 +582,13 @@ export const clearDepartmentValues = internalMutation({
 
     let updatedCount = 0;
     for (const profile of profiles) {
-      // TypeScript는 이미 department가 제거된 것으로 알고 있으므로, any 타입 사용
-      const profileAny = profile as any;
-      if (profileAny.department !== undefined) {
+      // department가 제거된 경우만 업데이트
+      const existingDepartment = (profile as { department?: unknown }).department;
+      if (existingDepartment !== undefined) {
         await ctx.db.patch(profile._id, {
           department: undefined,
           updated_at: Date.now(),
-        } as any);
+        } as unknown as { department?: string; updated_at: number });
         updatedCount++;
       }
     }
@@ -613,17 +613,17 @@ export const migrateIdToClerkId = mutation({
 
     let migratedCount = 0;
     for (const profile of profiles) {
-      const profileAny = profile as any;
+      const oldId = (profile as { id?: string }).id;
       
       // id 필드가 있고 clerk_id가 없으면 마이그레이션
-      if (profileAny.id !== undefined && profile.clerk_id === undefined) {
+      if (oldId !== undefined && profile.clerk_id === undefined) {
         await ctx.db.patch(profile._id, {
-          clerk_id: profileAny.id,
+          clerk_id: oldId,
           id: undefined,
           updated_at: Date.now(),
-        } as any);
+        } as unknown as { clerk_id?: string; id?: string; updated_at: number });
         migratedCount++;
-        console.log(`Migrated profile ${profile._id}: id -> clerk_id = ${profileAny.id}`);
+        console.log(`Migrated profile ${profile._id}: id -> clerk_id = ${oldId}`);
       }
     }
 

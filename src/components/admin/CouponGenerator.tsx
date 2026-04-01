@@ -50,8 +50,17 @@ const CouponGenerator = () => {
     user?.id ? { adminUserId: user.id, includeUsed: true } : 'skip'
   );
 
-  // Create coupons mutation
   const createCouponsMutation = useMutation(mutations.createCoupons as any);
+
+  type RawCoupon = {
+    _id: string;
+    code: string;
+    duration_months: number;
+    is_used: boolean;
+    used_by: string | null;
+    used_at: number | null;
+    created_at: number;
+  };
 
   // Generate random coupon code
   const generateRandomCode = (): string => {
@@ -182,7 +191,7 @@ const CouponGenerator = () => {
     setShowCouponList(!showCouponList);
   };
 
-  const coupons: Coupon[] = (couponsData || []).map((c: any) => ({
+  const coupons: Coupon[] = (couponsData ?? []).map((c: RawCoupon) => ({
     _id: c._id,
     code: c.code,
     duration_months: c.duration_months,

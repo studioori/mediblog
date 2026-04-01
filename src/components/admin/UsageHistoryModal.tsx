@@ -7,7 +7,6 @@ import { Loader2, Clock, FileText, TrendingUp, Calendar } from 'lucide-react';
 import { format, formatDistanceToNow, parseISO, getHours } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
-// Convex 쿼리 문자열
 const queries = {
   getActivityLogsByUser: 'admin:getActivityLogsByUser' as const,
   getPostCountByUser: 'posts:getPostCountByUser' as const,
@@ -42,7 +41,7 @@ const UsageHistoryModal = ({ isOpen, onClose, profile }: UsageHistoryModalProps)
 
   const isLoading = logsData === undefined || totalPosts === undefined;
 
-  const logs: ActivityLog[] = (logsData || []).map((log: any) => ({
+  const logs: ActivityLog[] = (logsData ?? []).map((log: { _id: string; action_type: string; created_at: number }) => ({
     _id: log._id,
     action_type: log.action_type,
     created_at: log.created_at,

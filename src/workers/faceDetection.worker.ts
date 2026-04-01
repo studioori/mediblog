@@ -1,6 +1,6 @@
 import * as faceapi from '@vladmandic/face-api';
 
-(self as any).global = self;
+(self as unknown as { global: typeof self }).global = self;
 
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
 
@@ -21,16 +21,21 @@ const patchEnvironment = (): void => {
   if (isPatched) return;
   
   try {
-    const env = (faceapi as any).env;
+    type FaceApiEnv = {
+      setEnv?: (env: unknown) => unknown;
+      createNodejsEnv?: () => unknown;
+      monkeyPatch?: (opts: { Canvas: typeof OffscreenCanvas; createCanvasElement?: () => OffscreenCanvas }) => void;
+    };
+    const env = (faceapi as unknown as { env?: FaceApiEnv }).env;
     
     if (env && env.setEnv && env.createNodejsEnv && env.monkeyPatch) {
-      env.setEnv(env.createNodejsEnv());
+      env.setEnv(env.createNodejsEnv() as unknown);
       env.monkeyPatch({
         Canvas: OffscreenCanvas,
         createCanvasElement: createOffscreenCanvas,
       });
-    } else if ((faceapi as any).env?.monkeyPatch) {
-      (faceapi as any).env.monkeyPatch({
+    } else if (env?.monkeyPatch) {
+      env.monkeyPatch({
         Canvas: OffscreenCanvas,
         createCanvasElement: createOffscreenCanvas,
       });
@@ -58,7 +63,8 @@ const warmup = async (): Promise<number> => {
   
   const start = performance.now();
   const canvas = createOffscreenCanvas(100, 100);
-  await faceapi.detectAllFaces(canvas as unknown as HTMLCanvasElement, DETECTOR_OPTIONS);
+  const canvasEl = canvas as unknown as HTMLCanvasElement;
+  await faceapi.detectAllFaces(canvasEl, DETECTOR_OPTIONS);
   isWarmedUp = true;
   return performance.now() - start;
 };
@@ -68,14 +74,15 @@ const detectFaces = async (imageData: ImageData): Promise<{ faces: Array<{x: num
   if (!isWarmedUp) await warmup();
   
   const canvas = createOffscreenCanvas(imageData.width, imageData.height);
-  const ctx = canvas.getContext('2d');
+  const canvasEl = canvas as unknown as HTMLCanvasElement;
+  const ctx = canvasEl.getContext('2d');
   if (!ctx) throw new Error('Canvas context not available');
   
   ctx.putImageData(imageData, 0, 0);
   
   const start = performance.now();
   const detections = await faceapi.detectAllFaces(
-    canvas as unknown as HTMLCanvasElement, 
+    canvasEl, 
     DETECTOR_OPTIONS
   );
   

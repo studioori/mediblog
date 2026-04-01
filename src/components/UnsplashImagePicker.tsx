@@ -86,7 +86,6 @@ const UnsplashImagePicker = ({
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
 
-  // Convex Action (기존 패턴과 동일하게 as any 사용)
   const searchImagesAction = useAction(actions.searchImagesByKeyword as any);
 
   // 키워드 검색

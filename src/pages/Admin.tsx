@@ -134,10 +134,9 @@ const Admin = () => {
     setValidationError(null);
     setEditIsAdminRole(false);
 
-    // Check if this user has admin role (에러 무시하고 다이얼로그 열기)
     try {
-      const api = await import('../../convex/_generated/api');
-      const roleData = await (api as any).admin.getUserRoleByUserId({ userId: profile.clerk_id });
+      const apiModule = await import('../../convex/_generated/api');
+      const roleData = await (apiModule as any).fullApi.admin.getUserRoleByUserId({ userId: profile.clerk_id });
       if (roleData?.role === 'admin') {
         setEditIsAdminRole(true);
       }
@@ -686,7 +685,7 @@ const Admin = () => {
           region={styleModalProfile.region}
           department={styleModalProfile.department}
           maxImageCount={styleModalProfile.max_image_count}
-          initialConfig={styleModalProfile.style_config || { styleReferenceText: '', customPrompt: '' }}
+          initialConfig={(styleModalProfile.style_config as any) || { styleReferenceText: '', customPrompt: '' }}
           userId={styleModalProfile.clerk_id}
           initialWritingStyle={styleModalProfile.writing_style}
           initialContentLength={styleModalProfile.content_length}

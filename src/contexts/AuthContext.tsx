@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clerk_id: 'demo_user',
       center_name: hospitalName,
       region,
-      style_config: null,
+      // style_config intentionally omitted for demo profile
       writing_style: 'warm_friendly',
       content_length: 'medium',
       use_emoji: true,
@@ -82,13 +82,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userId ? { userId } : 'skip'
   );
 
-  // Convex 쿼리: 권한 조회
   const roleData = useQuery(
     queries.getUserRole as any,
     userId ? { userId } : 'skip'
   );
 
-  // Convex 뮤테이션: 활동 로그
   const logActivity = useMutation(mutations.logActivity as any);
   const createProfile = useMutation(mutations.createProfile as any);
   const createOrUpdateUserRole = useMutation(mutations.createOrUpdateUserRole as any);
