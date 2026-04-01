@@ -3,8 +3,8 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import App from "./App";
 import "./index.css";
+import { preloadFaceDetectionModels } from "@/hooks/useFaceDetection";
 
-// Vite 환경 변수
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -17,6 +17,8 @@ if (!clerkPubKey) {
 }
 
 const convex = new ConvexReactClient(convexUrl || "https://placeholder.convex.cloud");
+
+preloadFaceDetectionModels().catch(() => {});
 
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider publishableKey={clerkPubKey}>

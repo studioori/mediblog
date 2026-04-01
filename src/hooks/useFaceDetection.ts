@@ -1,5 +1,9 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import * as faceapi from '@vladmandic/face-api';
+import { 
+  workerLoadModels, 
+  workerWarmup,
+  workerDetectFaces as workerDetect
+} from '@/lib/faceDetectionWorkerClient';
 
 export type BlurMode = 'mosaic' | 'emoji' | 'none';
 
@@ -31,8 +35,6 @@ interface UseFaceDetectionReturn {
   detectFaces: (imageElement: HTMLImageElement | HTMLCanvasElement) => Promise<FaceDetectionResult>;
   detectFacesFromUrl: (imageUrl: string) => Promise<FaceDetectionResult>;
 }
-
-const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
 
 export const EMOJI_LIST = ['😊', '😄', '🙂', '😐', '😎', '🤗'];
 
@@ -66,13 +68,9 @@ export const initializeFaceBoxes = (faces: FaceBoundingBox[]): FaceBoundingBox[]
   });
 };
 
-let isModelsLoaded = false;
-let loadingPromise: Promise<void> | null = null;
-
-const DETECTOR_OPTIONS = new faceapi.SsdMobilenetv1Options({
-  minConfidence: 0.2,
-  maxResults: 100,
-});
+let isWorkerReady = false;
+let isWorkerWarmedUp = false;
+let isLoadingModels = false;
 
 export const useFaceDetection = (): UseFaceDetectionReturn => {
   const [isReady, setIsReady] = useState(false);
@@ -80,83 +78,81 @@ export const useFaceDetection = (): UseFaceDetectionReturn => {
   const [error, setError] = useState<string | null>(null);
   const isInitialized = useRef(false);
 
-  const loadModels = useCallback(async () => {
-    if (isModelsLoaded) {
+  const initWorker = useCallback(async () => {
+    if (isWorkerReady) {
       setIsReady(true);
       return;
     }
 
-    if (loadingPromise) {
-      await loadingPromise;
-      setIsReady(true);
+    if (isLoadingModels) {
       return;
     }
 
+    isLoadingModels = true;
     setIsLoading(true);
     setError(null);
 
-    loadingPromise = (async () => {
-      await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-      isModelsLoaded = true;
-    })();
-
     try {
-      await loadingPromise;
+      await workerLoadModels();
+      isWorkerReady = true;
       setIsReady(true);
     } catch (err) {
-      console.error('Failed to load face-api models:', err);
-      setError(err instanceof Error ? err.message : '얼굴 인식 모델 로드 실패');
-      loadingPromise = null;
+      console.error('[FaceAPI] Failed to initialize:', err);
+      setError(err instanceof Error ? err.message : '얼굴 인식 초기화 실패');
     } finally {
       setIsLoading(false);
+      isLoadingModels = false;
     }
   }, []);
 
   useEffect(() => {
     if (!isInitialized.current) {
       isInitialized.current = true;
-      loadModels();
+      initWorker();
     }
-  }, [loadModels]);
+  }, [initWorker]);
 
   const detectFaces = useCallback(async (
     imageElement: HTMLImageElement | HTMLCanvasElement
   ): Promise<FaceDetectionResult> => {
-    if (!isModelsLoaded) {
-      await loadModels();
-      if (!isModelsLoaded) {
-        throw new Error('얼굴 인식 모델이 로드되지 않았습니다.');
+    if (!isWorkerReady) {
+      await initWorker();
+      if (!isWorkerReady) {
+        throw new Error('얼굴 인식이 초기화되지 않았습니다.');
       }
     }
 
-    const startTime = performance.now();
-
-    try {
-      const detections = await faceapi.detectAllFaces(imageElement, DETECTOR_OPTIONS);
-      
-      const faces: FaceBoundingBox[] = detections.map(detection => {
-        const box = detection.box;
-        return {
-          x: box.x,
-          y: box.y,
-          width: box.width,
-          height: box.height,
-        };
-      });
-
-      const endTime = performance.now();
-
-      return {
-        faces,
-        imageWidth: imageElement.width || (imageElement as HTMLImageElement).naturalWidth || 0,
-        imageHeight: imageElement.height || (imageElement as HTMLImageElement).naturalHeight || 0,
-        processingTime: Math.round(endTime - startTime),
-      };
-    } catch (err) {
-      console.error('Face detection failed:', err);
-      throw new Error(err instanceof Error ? err.message : '얼굴 인식 실패');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Canvas context를 생성할 수 없습니다.');
     }
-  }, [loadModels]);
+
+    const width = imageElement.width || (imageElement as HTMLImageElement).naturalWidth || 0;
+    const height = imageElement.height || (imageElement as HTMLImageElement).naturalHeight || 0;
+    
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(imageElement, 0, 0);
+    
+    const imageData = ctx.getImageData(0, 0, width, height);
+    
+    const result = await workerDetect(imageData);
+    
+    const faces: FaceBoundingBox[] = result.faces.map(f => ({
+      x: f.x,
+      y: f.y,
+      width: f.width,
+      height: f.height,
+    }));
+
+    return {
+      faces,
+      imageWidth: width,
+      imageHeight: height,
+      processingTime: Math.round(result.time),
+    };
+  }, [initWorker]);
 
   const detectFacesFromUrl = useCallback(async (
     imageUrl: string
@@ -189,6 +185,22 @@ export const useFaceDetection = (): UseFaceDetectionReturn => {
     detectFaces,
     detectFacesFromUrl,
   };
+};
+
+export const preloadFaceDetectionModels = (): Promise<void> => {
+  if (isWorkerReady && isWorkerWarmedUp) {
+    return Promise.resolve();
+  }
+
+  return workerLoadModels()
+    .then(() => workerWarmup())
+    .then(() => {
+      isWorkerReady = true;
+      isWorkerWarmedUp = true;
+    })
+    .catch((err) => {
+      console.error('[FaceAPI] Preload failed:', err);
+    });
 };
 
 export default useFaceDetection;
