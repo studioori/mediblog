@@ -371,14 +371,6 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
             >
               모자이크
             </Button>
-            <Button
-              variant={globalMode === 'none' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleGlobalModeChange('none')}
-              disabled={isProcessing}
-            >
-              원본
-            </Button>
             
             <div className="flex-1" />
             
@@ -566,38 +558,28 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
                         ))}
                       </div>
 
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => updateFaceMode(selectedFace.id!, 'mosaic')}
-                          className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
-                            selectedFace.mode === 'mosaic' 
-                              ? 'bg-primary text-primary-foreground' 
-                              : 'bg-muted hover:bg-muted/80'
-                          }`}
-                        >
-                          모자이크
-                        </button>
-                        <button
-                          onClick={() => updateFaceMode(selectedFace.id!, 'emoji')}
-                          className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
-                            selectedFace.mode === 'emoji' 
-                              ? 'bg-primary text-primary-foreground' 
-                              : 'bg-muted hover:bg-muted/80'
-                          }`}
-                        >
-                          이모티콘
-                        </button>
-                        <button
-                          onClick={() => updateFaceMode(selectedFace.id!, 'none')}
-                          className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
-                            selectedFace.mode === 'none' 
-                              ? 'bg-primary text-primary-foreground' 
-                              : 'bg-muted hover:bg-muted/80'
-                          }`}
-                        >
-                          없음
-                        </button>
-                      </div>
+                       <div className="flex gap-1">
+                         <button
+                           onClick={() => updateFaceMode(selectedFace.id!, 'emoji')}
+                           className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
+                             selectedFace.mode === 'emoji' 
+                               ? 'bg-primary text-primary-foreground' 
+                               : 'bg-muted hover:bg-muted/80'
+                           }`}
+                         >
+                           이모티콘
+                         </button>
+                         <button
+                           onClick={() => updateFaceMode(selectedFace.id!, 'mosaic')}
+                           className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
+                             selectedFace.mode === 'mosaic' 
+                               ? 'bg-primary text-primary-foreground' 
+                               : 'bg-muted hover:bg-muted/80'
+                           }`}
+                         >
+                           모자이크
+                         </button>
+                       </div>
 
                       <div className="space-y-1">
                         <div className="flex justify-between items-center">
