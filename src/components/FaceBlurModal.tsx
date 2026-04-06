@@ -33,6 +33,8 @@ interface FaceBlurModalProps {
   onApply?: (processedFile: File | null, photoId: string, faceSettings?: FaceBoundingBox[]) => void;
 }
 
+const DEFAULT_SELECTOR_SIZE_RATIO = 0.08;
+
 const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) => {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [detectionResult, setDetectionResult] = useState<FaceDetectionResult | null>(null);
@@ -189,6 +191,48 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
 
     generatePreview();
   }, [processedImage, adjustedFaces]);
+
+  const handleImageClick = useCallback((e: React.MouseEvent<SVGRectElement>) => {
+    if (dragState || !detectionResult || !imageRef.current) return;
+
+    const svg = imageRef.current.parentElement?.querySelector('svg');
+    if (!svg) return;
+
+    const rect = svg.getBoundingClientRect();
+    const displayX = e.clientX - rect.left;
+    const displayY = e.clientY - rect.top;
+
+    const originalX = toOriginalCoords(displayX);
+    const originalY = toOriginalCoords(displayY);
+
+    const baseSize = detectionResult.imageWidth * DEFAULT_SELECTOR_SIZE_RATIO;
+    const halfSize = baseSize / 2;
+
+    const clampedX = Math.max(0, Math.min(originalX - halfSize, detectionResult.imageWidth - baseSize));
+    const clampedY = Math.max(0, Math.min(originalY - halfSize, detectionResult.imageHeight - baseSize));
+
+    const newFace: FaceBoundingBox = {
+      id: `manual-${Date.now()}`,
+      x: clampedX,
+      y: clampedY,
+      width: baseSize,
+      height: baseSize,
+      emoji: EMOJI_LIST[Math.floor(Math.random() * EMOJI_LIST.length)],
+      scale: 1.0,
+      offsetX: 0,
+      offsetY: 0,
+      mode: globalMode,
+      mosaicStrength: 2,
+      selected: true,
+    };
+
+    saveSnapshot();
+    setAdjustedFaces(prev => [
+      ...prev.map(f => ({ ...f, selected: false })),
+      newFace,
+    ]);
+    setSelectedFaceId(newFace.id);
+  }, [dragState, detectionResult, toOriginalCoords, globalMode, saveSnapshot]);
 
   const handleGlobalModeChange = (mode: BlurMode) => {
     setGlobalMode(mode);
@@ -446,15 +490,24 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
                     draggable={false}
                   />
                   
-                  {imageLoaded && adjustedFaces.length > 0 && (
+                  {imageLoaded && (
                     <svg
-                      className="absolute top-0 left-0 pointer-events-none"
+                      className="absolute top-0 left-0"
                       style={{
                         width: imageRef.current?.offsetWidth,
                         height: imageRef.current?.offsetHeight,
                         touchAction: 'none',
+                        cursor: 'crosshair',
                       }}
                     >
+                      <rect
+                        x={0}
+                        y={0}
+                        width={imageRef.current?.offsetWidth}
+                        height={imageRef.current?.offsetHeight}
+                        fill="transparent"
+                        onClick={handleImageClick}
+                      />
                       {adjustedFaces.map(face => {
                         const display = toDisplayCoords(face);
                         const mode = face.mode || 'mosaic';
