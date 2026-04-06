@@ -18,6 +18,7 @@ export interface FaceBoundingBox {
   offsetY?: number;
   id?: string;
   mode?: BlurMode;
+  mosaicStrength?: number;
   selected?: boolean;
 }
 
@@ -63,6 +64,7 @@ export const initializeFaceBoxes = (faces: FaceBoundingBox[]): FaceBoundingBox[]
       offsetX: 0,
       offsetY: 0,
       mode: 'emoji' as BlurMode,
+      mosaicStrength: 2,
       selected: false,
     };
   });

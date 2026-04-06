@@ -4,6 +4,16 @@ export type { BlurMode };
 
 const EMOJI_LIST = ['😊', '😄', '🙂', '😐', '😎', '🤗'];
 
+const MOSAIC_BLOCK_SIZES: Record<number, number> = {
+  1: 5,
+  2: 10,
+  3: 20,
+};
+
+function getMosaicBlockSize(strength?: number): number {
+  return MOSAIC_BLOCK_SIZES[strength || 2] || 10;
+}
+
 function getRandomEmoji(): string {
   return EMOJI_LIST[Math.floor(Math.random() * EMOJI_LIST.length)];
 }
@@ -128,7 +138,7 @@ export function applyFaceBlur(
         const scaledHeight = paddedHeight * scaleY;
 
         if (mode === 'mosaic') {
-          applyMosaic(ctx, scaledX, scaledY, scaledWidth, scaledHeight);
+          applyMosaic(ctx, scaledX, scaledY, scaledWidth, scaledHeight, getMosaicBlockSize(squareFace.mosaicStrength));
         } else if (mode === 'emoji') {
           applyEmoji(
             ctx,
@@ -164,5 +174,82 @@ export function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('이미지 로드 실패'));
     img.src = url;
+  });
+}
+
+export function applyMosaicPreview(
+  imageSource: HTMLImageElement | HTMLCanvasElement | string,
+  faces: FaceBoundingBox[],
+  displayWidth: number
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const processImage = (img: HTMLImageElement | HTMLCanvasElement) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        reject(new Error('Canvas context를 생성할 수 없습니다.'));
+        return;
+      }
+
+      const sourceWidth = 'naturalWidth' in img ? img.naturalWidth : img.width;
+      const sourceHeight = 'naturalHeight' in img ? img.naturalHeight : img.height;
+
+      const scale = displayWidth / sourceWidth;
+      canvas.width = displayWidth;
+      canvas.height = Math.round(sourceHeight * scale);
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      const mosaicFaces = faces.filter(f => f.mode === 'mosaic');
+      if (mosaicFaces.length === 0) {
+        resolve(canvas.toDataURL('image/jpeg', 0.9));
+        return;
+      }
+
+      const scaleX = canvas.width / sourceWidth;
+      const scaleY = canvas.height / sourceHeight;
+
+      for (const face of mosaicFaces) {
+        const squareFace = toSquareBox(face);
+
+        const padding = 0.15;
+        const baseX = squareFace.x + (squareFace.offsetX || 0);
+        const baseY = squareFace.y + (squareFace.offsetY || 0);
+        const faceWidth = squareFace.width * (squareFace.scale || 1.0);
+        const faceHeight = squareFace.height * (squareFace.scale || 1.0);
+
+        const paddedX = Math.max(0, baseX - faceWidth * padding);
+        const paddedY = Math.max(0, baseY - faceHeight * padding);
+        const paddedWidth = faceWidth * (1 + padding * 2);
+        const paddedHeight = faceHeight * (1 + padding * 2);
+
+        const scaledX = Math.round(paddedX * scaleX);
+        const scaledY = Math.round(paddedY * scaleY);
+        const scaledWidth = Math.round(paddedWidth * scaleX);
+        const scaledHeight = Math.round(paddedHeight * scaleY);
+
+        const clampedX = Math.max(0, scaledX);
+        const clampedY = Math.max(0, scaledY);
+        const clampedWidth = Math.min(scaledWidth, canvas.width - clampedX);
+        const clampedHeight = Math.min(scaledHeight, canvas.height - clampedY);
+
+        if (clampedWidth > 0 && clampedHeight > 0) {
+          applyMosaic(ctx, clampedX, clampedY, clampedWidth, clampedHeight, getMosaicBlockSize(face.mosaicStrength));
+        }
+      }
+
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    };
+
+    if (typeof imageSource === 'string') {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => processImage(img);
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = imageSource;
+    } else {
+      processImage(imageSource);
+    }
   });
 }
