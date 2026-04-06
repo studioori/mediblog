@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Loader2, Users, Sparkles, ImageOff, Clock, Check, Undo2, X } from 'lucide-react';
 import { useFaceDetection, type FaceDetectionResult, type FaceBoundingBox, type BlurMode, initializeFaceBoxes, EMOJI_LIST } from '@/hooks/useFaceDetection';
-import { applyFaceBlur } from '@/lib/faceBlur';
+import { applyFaceBlur, applyMosaicPreview } from '@/lib/faceBlur';
 import { type PhotoItem } from '@/components/PhotoUploader';
 
 const base64ToFile = (base64: string, filename: string): File => {
@@ -43,7 +43,8 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
   const [selectedFaceId, setSelectedFaceId] = useState<string | null>(null);
   const [previousState, setPreviousState] = useState<FaceBoundingBox[] | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
-  
+  const [mosaicPreviewUrl, setMosaicPreviewUrl] = useState<string | null>(null);
+
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -104,6 +105,8 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
 
     if (photo.faceSettings && photo.faceSettings.length > 0) {
       setAdjustedFaces(photo.faceSettings);
+      const existingMode = photo.faceSettings[0].mode || 'emoji';
+      setGlobalMode(existingMode as BlurMode);
       const img = new Image();
       img.onload = () => {
         setDetectionResult({
@@ -155,8 +158,37 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
       setSelectedFaceId(null);
       setPreviousState(null);
       setImageLoaded(false);
+      setMosaicPreviewUrl(null);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!processedImage || adjustedFaces.length === 0) {
+      setMosaicPreviewUrl(null);
+      return;
+    }
+
+    const hasMosaicFace = adjustedFaces.some(f => f.mode === 'mosaic');
+    if (!hasMosaicFace) {
+      setMosaicPreviewUrl(null);
+      return;
+    }
+
+    const generatePreview = async () => {
+      try {
+        const previewUrl = await applyMosaicPreview(
+          processedImage,
+          adjustedFaces,
+          1000
+        );
+        setMosaicPreviewUrl(previewUrl);
+      } catch (err) {
+        console.error('Mosaic preview generation failed:', err);
+      }
+    };
+
+    generatePreview();
+  }, [processedImage, adjustedFaces]);
 
   const handleGlobalModeChange = (mode: BlurMode) => {
     setGlobalMode(mode);
@@ -248,13 +280,6 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
     saveSnapshot();
     setAdjustedFaces(prev => prev.map(face =>
       face.id === faceId ? { ...face, scale } : face
-    ));
-  };
-
-  const updateFaceMode = (faceId: string, mode: BlurMode) => {
-    saveSnapshot();
-    setAdjustedFaces(prev => prev.map(face =>
-      face.id === faceId ? { ...face, mode } : face
     ));
   };
 
@@ -413,7 +438,7 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
                 <div ref={containerRef} className="relative inline-block">
                   <img
                     ref={imageRef}
-                    src={processedImage}
+                    src={mosaicPreviewUrl || processedImage}
                     alt="처리된 이미지"
                     className="block max-w-full rounded-lg shadow-lg"
                     style={{ width: '1000px' }}
@@ -437,15 +462,6 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
                         
                         return (
                           <g key={face.id} className="pointer-events-auto">
-                            {showPreview && mode === 'mosaic' && (
-                              <rect
-                                x={display.x}
-                                y={display.y}
-                                width={display.width}
-                                height={display.height}
-                                className="fill-gray-500/60"
-                              />
-                            )}
                             {showPreview && mode === 'emoji' && (
                               <text
                                 x={display.x + display.width / 2}
@@ -501,7 +517,7 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
                               style={{ 
                                 userSelect: 'none',
                                 cursor: 'move',
-                                opacity: mode === 'emoji' ? 0 : 1,
+                                opacity: mode !== 'none' ? 0 : 1,
                               }}
                               className={face.selected ? 'fill-primary' : 'fill-blue-500'}
                               onPointerDown={(e) => handlePointerDown(e, face.id!, 'drag')}
@@ -543,43 +559,52 @@ const FaceBlurModal = ({ isOpen, onClose, photo, onApply }: FaceBlurModalProps) 
                           <X className="w-3 h-3" />
                         </button>
                       </div>
-                      
-                      <div className="flex gap-0.5 justify-center">
-                        {EMOJI_LIST.map(emoji => (
-                          <button
-                            key={emoji}
-                            onClick={() => updateFaceEmoji(selectedFace.id!, emoji)}
-                            className={`text-xl hover:scale-110 transition-transform p-0.5 rounded ${
-                              selectedFace.emoji === emoji ? 'bg-primary/20 ring-1 ring-primary' : ''
-                            }`}
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
 
-                       <div className="flex gap-1">
-                         <button
-                           onClick={() => updateFaceMode(selectedFace.id!, 'emoji')}
-                           className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
-                             selectedFace.mode === 'emoji' 
-                               ? 'bg-primary text-primary-foreground' 
-                               : 'bg-muted hover:bg-muted/80'
-                           }`}
-                         >
-                           이모티콘
-                         </button>
-                         <button
-                           onClick={() => updateFaceMode(selectedFace.id!, 'mosaic')}
-                           className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
-                             selectedFace.mode === 'mosaic' 
-                               ? 'bg-primary text-primary-foreground' 
-                               : 'bg-muted hover:bg-muted/80'
-                           }`}
-                         >
-                           모자이크
-                         </button>
-                       </div>
+                      {globalMode === 'emoji' && (
+                        <div className="flex gap-0.5 justify-center">
+                          {EMOJI_LIST.map(emoji => (
+                            <button
+                              key={emoji}
+                              onClick={() => updateFaceEmoji(selectedFace.id!, emoji)}
+                              className={`text-xl hover:scale-110 transition-transform p-0.5 rounded ${
+                                selectedFace.emoji === emoji ? 'bg-primary/20 ring-1 ring-primary' : ''
+                              }`}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {globalMode === 'mosaic' && (
+                        <div className="space-y-1">
+                          <span className="text-xs text-muted-foreground">모자이크 강도</span>
+                          <div className="flex gap-1">
+                            {([
+                              { value: 1, label: '약하게' },
+                              { value: 2, label: '보통' },
+                              { value: 3, label: '강하게' },
+                            ] as const).map(({ value, label }) => (
+                              <button
+                                key={value}
+                                onClick={() => {
+                                  saveSnapshot();
+                                  setAdjustedFaces(prev => prev.map(face =>
+                                    face.id === selectedFace.id ? { ...face, mosaicStrength: value } : face
+                                  ));
+                                }}
+                                className={`flex-1 text-xs px-2 py-1 rounded transition-colors ${
+                                  (selectedFace.mosaicStrength || 2) === value
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted hover:bg-muted/80'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="space-y-1">
                         <div className="flex justify-between items-center">
